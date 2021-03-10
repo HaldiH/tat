@@ -44,6 +44,8 @@ def is_image(filename):
 
 class App:
     def __init__(self, input_folder, output_folder):
+        if not os.path.exists(output_folder):
+            os.mkdir(output_folder)
         self.input_folder = input_folder
         self.output_folder = output_folder
 
