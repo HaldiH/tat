@@ -3,7 +3,7 @@ import os
 
 from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow
 from PySide6.QtCore import Slot, QEvent, QSize
-from PySide6.QtGui import QPixmap, QImage
+from PySide6.QtGui import QPixmap, QImage, QResizeEvent
 
 from api import Tat
 from mainwindow import Ui_MainWindow
@@ -34,6 +34,12 @@ class MainWindow(QMainWindow):
         self.ui.buttonCheckUncheck.clicked.connect(self.select_deselect)
         self.ui.buttonClearGenerated.clicked.connect(self.clear_generated)
 
+    def resizeEvent(self, event: QResizeEvent) -> None:
+        if self.__selected_image_entry is None:
+            return
+        self.__selected_image_entry: ImageEntry
+        self.draw_preview_image(load_image(self.__selected_image_entry.image_path))
+
     def select_deselect(self):
         all_checked = True
         for ime in self.__source_image_entries:
@@ -48,30 +54,40 @@ class MainWindow(QMainWindow):
         for ime in self.__generated_images_entries:
             ime.close()
 
-    def image_entry_handler(self, sender: ImageEntry, event: QEvent):
+    def image_entry_click_handler(self, sender: ImageEntry, event: QEvent):
         if sender is self.__selected_image_entry:
             return
 
-        self.__selected_image_entry.setSelected(False)
+        if self.__selected_image_entry is not None:
+            self.__selected_image_entry.setSelected(False)
         self.__selected_image_entry = sender
         sender.setSelected(True)
-        self.preview_image(load_image(sender.image_path))
+        self.draw_preview_image(load_image(sender.image_path))
 
-    def preview_image(self, image: QImage):
+    def draw_preview_image(self, image: QImage):
         self.ui.imagePreview.setPixmap(
             fit_to_frame(QPixmap.fromImage(image), QSize(self.ui.imagePreview.width(), self.ui.imagePreview.height())))
 
     def set_preview_image(self, image: QImage, image_entry: ImageEntry):
-        self.preview_image(image)
+        self.draw_preview_image(image)
         if self.__selected_image_entry is not None:
             self.__selected_image_entry.setSelected(False)
         self.__selected_image_entry = image_entry
         image_entry.setSelected(True)
 
+    def clear_preview_image(self):
+        self.ui.imagePreview.setText("Preview")
+        if self.__selected_image_entry is not None:
+            self.__selected_image_entry.setSelected(False)
+        self.__selected_image_entry = None
+
     def clear_image_entries(self):
         for ime in self.__source_image_entries:
             ime.close()
+        for ime in self.__generated_images_entries:
+            ime.close()
         self.__source_image_entries.clear()
+        self.__generated_images_entries.clear()
 
     @Slot()
     def load_input_directory(self):
@@ -80,8 +96,9 @@ class MainWindow(QMainWindow):
             return
 
         self.clear_image_entries()
+        self.clear_preview_image()
 
-        self.ui.labelInDir.setText(f"Loaded: {self.input_directory}")
+        # self.ui.labelInDir.setText(f"Loaded: {self.input_directory}")
 
         src_layout = self.ui.scrollAreaWidgetContentsSrc.layout()
         first = True
@@ -89,7 +106,7 @@ class MainWindow(QMainWindow):
             qim = load_image(entry.path)
 
             ime = SourceImageEntry(src_layout.parent(), qim, entry.path, entry.name)
-            ime.registerMousePressHandler(self.image_entry_handler)
+            ime.registerMousePressHandler(self.image_entry_click_handler)
             self.__source_image_entries.append(ime)
             src_layout.addWidget(ime)
 
@@ -106,7 +123,7 @@ class MainWindow(QMainWindow):
         if len(self.output_directory) == 0:
             return
 
-        self.ui.labelOutDir.setText(f"Loaded: {self.output_directory}")
+        # self.ui.labelOutDir.setText(f"Loaded: {self.output_directory}")
         if len(self.input_directory) != 0:
             self.ui.buttonGenerate.setEnabled(True)
 
@@ -132,8 +149,8 @@ class MainWindow(QMainWindow):
                 cv.imwrite(output_path, colored)
 
                 qim = load_image(output_path)
-                ime = ImageEntry(layout.parent(), qim, output_path, output_basename)
-                ime.registerMousePressHandler(self.image_entry_handler)
+                ime = ImageEntry(layout.parent(), qim, output_path, str(i))
+                ime.registerMousePressHandler(self.image_entry_click_handler)
                 layout.addWidget(ime)
                 self.__generated_images_entries.append(ime)
 

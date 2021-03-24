@@ -60,4 +60,3 @@ class ImageEntry(QWidget):
     def mousePressEvent(self, event: QMouseEvent) -> None:
         for hdl in self.__mouse_pressed_handlers:
             hdl(self, event)
-        self.setSelected(True)
