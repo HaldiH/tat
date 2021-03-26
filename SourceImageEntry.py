@@ -5,13 +5,13 @@ from ImageEntry import ImageEntry
 
 
 class SourceImageEntry(ImageEntry):
-    def __init__(self, parent: QWidget, image: QImage, path: str, name: str):
+    def __init__(self, parent: QWidget, image: QImage, path: str, name: str, default_check=True):
         super(SourceImageEntry, self).__init__(parent, image, path, name)
         layout = self.layout()
 
         self.__check_box = QCheckBox(self)
         self.__check_box.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
-        self.__check_box.setChecked(True)
+        self.__check_box.setChecked(default_check)
 
         layout.addWidget(self.__check_box, alignment=Qt.AlignHCenter)
 

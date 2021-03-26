@@ -18,7 +18,10 @@ class Tat:
 
     @staticmethod
     def guess_type(filename):
-        return mimetypes.guess_type(filename)[0].split("/")[0]
+        filetype = mimetypes.guess_type(filename)[0]
+        if filetype is None:
+            return None
+        return filetype.split("/")[0]
 
     @staticmethod
     def is_image(filename):
@@ -48,7 +51,7 @@ class Tat:
             layer = np.zeros(shape=np.shape(monochrome_labeled_segments))
             layer[monochrome_labeled_segments == monochrome_labeled_cluster[i]] = 1
             layers.append(layer)
-        return layers
+        return layers, monochrome_labeled_segments
 
     def generate(self, cluster_count: int, run_count: int, max_iter_count: int):
         for entry in os.scandir(self.input_folder):

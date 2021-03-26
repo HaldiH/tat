@@ -1,7 +1,7 @@
 import sys
 import os
 
-from PySide6.QtWidgets import QApplication, QFileDialog, QMainWindow
+from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QLayout
 from PySide6.QtCore import Slot, QEvent, QSize
 from PySide6.QtGui import QPixmap, QImage, QResizeEvent
 
@@ -9,13 +9,15 @@ from api import Tat
 from mainwindow import Ui_MainWindow
 from SourceImageEntry import SourceImageEntry
 from ImageEntry import ImageEntry
-from Utils import fit_to_frame, load_image
+from PreviewWindow import PreviewWindow
+from ClusterImageEntry import ClusterImageEntry
+from Utils import fit_to_frame, load_image, apply_colormap
 
 import numpy as np
 import cv2 as cv
 
 
-class MainWindow(QMainWindow):
+class MainWindow(PreviewWindow):
     def __init__(self):
         super(MainWindow, self).__init__(None)
         self.ui = Ui_MainWindow()
@@ -24,8 +26,6 @@ class MainWindow(QMainWindow):
         self.input_directory = ""
         self.output_directory = ""
 
-        self.__selected_image_entry = None
-        self.__source_image_entries: [SourceImageEntry] = []
         self.__generated_images_entries: [ImageEntry] = []
 
         self.ui.buttonInputDir.clicked.connect(self.load_input_directory)
@@ -34,59 +34,20 @@ class MainWindow(QMainWindow):
         self.ui.buttonCheckUncheck.clicked.connect(self.select_deselect)
         self.ui.buttonClearGenerated.clicked.connect(self.clear_generated)
 
-    def resizeEvent(self, event: QResizeEvent) -> None:
-        if self.__selected_image_entry is None:
-            return
-        self.__selected_image_entry: ImageEntry
-        self.draw_preview_image(load_image(self.__selected_image_entry.image_path))
+    def source_layout(self) -> QLayout:
+        return self.ui.scrollAreaWidgetContentsSrc.layout()
 
-    def select_deselect(self):
-        all_checked = True
-        for ime in self.__source_image_entries:
-            if not ime.isChecked():
-                all_checked = False
-                break
-
-        for ime in self.__source_image_entries:
-            ime.setChecked(not all_checked)
+    def image_preview(self) -> QLabel:
+        return self.ui.imagePreview
 
     def clear_generated(self):
         for ime in self.__generated_images_entries:
             ime.close()
 
-    def image_entry_click_handler(self, sender: ImageEntry, event: QEvent):
-        if sender is self.__selected_image_entry:
-            return
-
-        if self.__selected_image_entry is not None:
-            self.__selected_image_entry.setSelected(False)
-        self.__selected_image_entry = sender
-        sender.setSelected(True)
-        self.draw_preview_image(load_image(sender.image_path))
-
-    def draw_preview_image(self, image: QImage):
-        self.ui.imagePreview.setPixmap(
-            fit_to_frame(QPixmap.fromImage(image), QSize(self.ui.imagePreview.width(), self.ui.imagePreview.height())))
-
-    def set_preview_image(self, image: QImage, image_entry: ImageEntry):
-        self.draw_preview_image(image)
-        if self.__selected_image_entry is not None:
-            self.__selected_image_entry.setSelected(False)
-        self.__selected_image_entry = image_entry
-        image_entry.setSelected(True)
-
-    def clear_preview_image(self):
-        self.ui.imagePreview.setText("Preview")
-        if self.__selected_image_entry is not None:
-            self.__selected_image_entry.setSelected(False)
-        self.__selected_image_entry = None
-
     def clear_image_entries(self):
-        for ime in self.__source_image_entries:
-            ime.close()
+        super(MainWindow, self).clear_image_entries()
         for ime in self.__generated_images_entries:
             ime.close()
-        self.__source_image_entries.clear()
         self.__generated_images_entries.clear()
 
     @Slot()
@@ -100,15 +61,17 @@ class MainWindow(QMainWindow):
 
         # self.ui.labelInDir.setText(f"Loaded: {self.input_directory}")
 
-        src_layout = self.ui.scrollAreaWidgetContentsSrc.layout()
+        src_layout = self.source_layout()
         first = True
         for entry in os.scandir(self.input_directory):
+            if not Tat.is_image(entry.path):
+                continue
+
             qim = load_image(entry.path)
 
             ime = SourceImageEntry(src_layout.parent(), qim, entry.path, entry.name)
             ime.registerMousePressHandler(self.image_entry_click_handler)
-            self.__source_image_entries.append(ime)
-            src_layout.addWidget(ime)
+            self.register_source_image_entry(ime)
 
             if first:
                 self.set_preview_image(qim, ime)
@@ -131,32 +94,40 @@ class MainWindow(QMainWindow):
     def generate(self):
         layout = self.ui.scrollAreaWidgetContentsDst.layout()
         first = True
-        for ime in self.__source_image_entries:
-            ime: SourceImageEntry
+        for ime in self._source_image_entries:
             if not ime.isChecked() or not Tat.is_image(ime.image_path):
                 continue
 
             input_basename = (lambda basename: basename[0:basename.rfind(".")])(os.path.basename(ime.image_path))
-            layers = Tat.generate_layers(np.asarray(cv.imread(ime.image_path, flags=cv.IMREAD_GRAYSCALE)),
-                                         self.ui.clusterCount.value(), self.ui.runCount.value(),
-                                         self.ui.maxIterCount.value())
+            layers, cluster = Tat.generate_layers(np.asarray(cv.imread(ime.image_path, flags=cv.IMREAD_GRAYSCALE)),
+                                                  self.ui.clusterCount.value(), self.ui.runCount.value(),
+                                                  self.ui.maxIterCount.value())
+
+            layers_paths: [str] = []
+            output_basename = f"{input_basename}_cluster.png"
+            output_path = os.path.join(self.output_directory, output_basename)
+
+            np.save(f"{output_path[0:output_path.rfind('.')]}.npy", cluster)
+
+            cv.imwrite(output_path, apply_colormap(cluster, cv.COLORMAP_JET))
+            qim = load_image(output_path)
+            ime = ClusterImageEntry(layout.parent(), qim, output_path, input_basename, layers_paths)
+            ime.registerMousePressHandler(self.image_entry_click_handler)
+            layout.addWidget(ime)
+            self.__generated_images_entries.append(ime)
+
+            if first:
+                self.set_preview_image(qim, ime)
+                first = False
+
             for i in range(len(layers)):
                 layer = layers[i].astype(np.uint8)
                 output_basename = f"{input_basename}_layer_{i}.png"
                 output_path = os.path.join(self.output_directory, output_basename)
+                np.save(f"{output_path[0:output_path.rfind('.')]}.npy", layer)
+                layers_paths.append(output_path)
 
-                colored = cv.applyColorMap(layer * 255, cv.COLORMAP_VIRIDIS)
-                cv.imwrite(output_path, colored)
-
-                qim = load_image(output_path)
-                ime = ImageEntry(layout.parent(), qim, output_path, str(i))
-                ime.registerMousePressHandler(self.image_entry_click_handler)
-                layout.addWidget(ime)
-                self.__generated_images_entries.append(ime)
-
-                if first:
-                    self.set_preview_image(qim, ime)
-                    first = False
+                cv.imwrite(output_path, apply_colormap(layer, cv.COLORMAP_VIRIDIS))
 
 
 class App(QApplication):

@@ -1,8 +1,10 @@
+from __future__ import annotations
+from typing import Callable, Final, Any
+from Utils import fit_to_frame
+
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QLabel, QSizePolicy, QFrame
 from PySide6.QtGui import QImage, QPixmap, QColor, QMouseEvent
 from PySide6.QtCore import Qt, QEvent, QSize
-from typing import Callable, Final
-from Utils import fit_to_frame
 
 
 class ImageEntry(QWidget):
@@ -10,7 +12,7 @@ class ImageEntry(QWidget):
         super(ImageEntry, self).__init__(parent)
         self.__selected = False
         self.__ime_layout = QVBoxLayout(self)
-        self.__mouse_pressed_handlers = []
+        self.__mouse_pressed_handlers: [Callable[[ImageEntry, QMouseEvent], Any]] = []
         self.setAutoFillBackground(True)
         self.__default_background_color = self.palette().color(self.backgroundRole())
         self.image_path: Final = path
@@ -20,7 +22,7 @@ class ImageEntry(QWidget):
         image_label.setAlignment(Qt.AlignCenter)
         # qpix = QPixmap.fromImage(image)
         # image_label.setPixmap(qpix.scaledToHeight(image_label.height()))
-        image_label.setPixmap(fit_to_frame(QPixmap.fromImage(image), QSize(image_label.width(), image_label.height())))
+        image_label.setPixmap(fit_to_frame(QPixmap.fromImage(image), QSize(parent.width(), parent.height())))
 
         name_label = QLabel(name, self)
         name_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
@@ -51,7 +53,7 @@ class ImageEntry(QWidget):
         pal.setColor(self.backgroundRole(), color)
         self.setPalette(pal)
 
-    def registerMousePressHandler(self, handler: Callable):
+    def registerMousePressHandler(self, handler: Callable[[ImageEntry, QMouseEvent], Any]):
         self.__mouse_pressed_handlers.append(handler)
 
     def clearMousePressHandler(self):
