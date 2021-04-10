@@ -1,5 +1,6 @@
 import sys
 import os
+from pathlib import Path
 
 from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QLayout
 from PySide6.QtCore import Slot, QEvent, QSize
@@ -57,10 +58,16 @@ class MainWindow(PreviewWindow):
         :param layers_indices: A range of the layers to merge
         :return: None
         """
+        if len(layers_indices) == 0:
+            return
+
         for ime in self.__generated_images_entries:
             ime: ClusterImageEntry
             merged: Optional[np.ndarray] = None
+            merged_str = ""
             for i in layers_indices:
+                merged_str += str(i) if i == layers_indices[0] else f"+{str(i)}"
+
                 _, layer_matrix_path = ime.get_layer_paths(i)
                 layer = np.load(layer_matrix_path)
                 merged = layer if merged is None else merged | layer
@@ -72,8 +79,9 @@ class MainWindow(PreviewWindow):
                 break
 
             colored = apply_colormap(merged)
-            merged_path_no_ext = os.path.join(os.path.dirname(ime.image_path),
-                                              f"{ime.basename}_layer_{ime.layer_count() - 1}")
+            merged_dir = os.path.join(os.path.dirname(ime.image_path), "merged")
+            Path(merged_dir).mkdir(exist_ok=True)
+            merged_path_no_ext = os.path.join(merged_dir, f"{ime.basename}_layers_{merged_str}")
             merged_image_path = f"{merged_path_no_ext}.png"
             merged_array_path = f"{merged_path_no_ext}.npy"
 
