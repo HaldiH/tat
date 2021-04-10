@@ -50,7 +50,6 @@ class PreviewWindow(QMainWindow):
         self._selected_image_entry = None
 
     def image_entry_click_handler(self, sender: ImageEntry, event: QMouseEvent) -> None:
-        print(f"image entry selected: {sender.image_path}")
         self.set_preview_image(load_image(sender.image_path), sender)
 
     def resizeEvent(self, event: QResizeEvent) -> None:
