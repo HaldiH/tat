@@ -8,15 +8,15 @@ from PySide6.QtCore import Qt, QEvent, QSize
 
 
 class ImageEntry(QWidget):
-    def __init__(self, parent: QWidget, image: QImage, path: str, name: str, array_path: Optional[str] = None):
+    def __init__(self, parent: QWidget, image: QImage, image_path: str, name: str, array_path: Optional[str] = None):
         super(ImageEntry, self).__init__(parent)
         self.__selected = False
         self.__ime_layout = QVBoxLayout(self)
         self.__mouse_pressed_handlers: [Callable[[ImageEntry, QMouseEvent], Any]] = []
         self.setAutoFillBackground(True)
         self.__default_background_color = self.palette().color(self.backgroundRole())
-        self.image_path: Final[str] = path
-        self.array_path: Final[str] = array_path
+        self.image_path: Final[str] = image_path
+        self.array_path: Final[Optional[str]] = array_path
         self.basename: Final[str] = name
 
         image_label = QLabel("Preview", self)
@@ -24,7 +24,7 @@ class ImageEntry(QWidget):
         image_label.setAlignment(Qt.AlignCenter)
         # qpix = QPixmap.fromImage(image)
         # image_label.setPixmap(qpix.scaledToHeight(image_label.height()))
-        image_label.setPixmap(fit_to_frame(QPixmap.fromImage(image), QSize(parent.width(), parent.height())))
+        image_label.setPixmap(fit_to_frame(QPixmap.fromImage(image), QSize(50, 50)))
 
         name_label = QLabel(name, self)
         name_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)

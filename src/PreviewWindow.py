@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QMainWindow, QWidget, QLabel, QLayout
 from PySide6.QtGui import QImage, QResizeEvent, QPixmap, QMouseEvent
-from PySide6.QtCore import QEvent, QSize
+from PySide6.QtCore import QSize
 
 from abc import abstractmethod
 from typing import Optional

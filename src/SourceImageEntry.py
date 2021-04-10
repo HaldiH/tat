@@ -7,9 +7,9 @@ from typing import Optional
 
 
 class SourceImageEntry(ImageEntry):
-    def __init__(self, parent: QWidget, image: QImage, path: str, name: str, array_path: Optional[str] = None,
+    def __init__(self, parent: QWidget, image: QImage, image_path: str, name: str, array_path: Optional[str] = None,
                  default_check=True):
-        super(SourceImageEntry, self).__init__(parent, image, path, name, array_path)
+        super(SourceImageEntry, self).__init__(parent, image, image_path, name, array_path)
         layout = self.layout()
 
         self.__check_box = QCheckBox(self)

@@ -12,6 +12,7 @@ from ImageEntry import ImageEntry
 from PreviewWindow import PreviewWindow
 from ClusterImageEntry import ClusterImageEntry
 from Utils import fit_to_frame, load_image, apply_colormap
+from typing import Optional
 
 import numpy as np
 import cv2 as cv
@@ -49,6 +50,37 @@ class MainWindow(PreviewWindow):
         for ime in self.__generated_images_entries:
             ime.close()
         self.__generated_images_entries.clear()
+
+    def merge_layers(self, layers_indices: [int]) -> None:
+        """
+        Merge all the specified layers
+        :param layers_indices: A range of the layers to merge
+        :return: None
+        """
+        for ime in self.__generated_images_entries:
+            ime: ClusterImageEntry
+            merged: Optional[np.ndarray] = None
+            for i in layers_indices:
+                _, layer_matrix_path = ime.get_layer_paths(i)
+                layer = np.load(layer_matrix_path)
+                merged = layer if merged is None else merged | layer
+
+            for i in sorted(layers_indices, reverse=True):
+                ime.remove_layer(i)
+
+            if merged is None:
+                break
+
+            colored = apply_colormap(merged)
+            merged_path_no_ext = os.path.join(os.path.dirname(ime.image_path),
+                                              f"{ime.basename}_layer_{ime.layer_count() - 1}")
+            merged_image_path = f"{merged_path_no_ext}.png"
+            merged_array_path = f"{merged_path_no_ext}.npy"
+
+            cv.imwrite(merged_image_path, colored)
+            np.save(merged_array_path, merged)
+
+            ime.add_layer_paths(merged_image_path, merged_array_path)
 
     @Slot()
     def load_input_directory(self):
@@ -98,36 +130,37 @@ class MainWindow(PreviewWindow):
             if not ime.isChecked() or not Tat.is_image(ime.image_path):
                 continue
 
-            input_basename = (lambda basename: basename[0:basename.rfind(".")])(os.path.basename(ime.image_path))
+            input_basename_no_ext = (lambda basename: basename[0:basename.rfind(".")])(os.path.basename(ime.image_path))
             layers, cluster = Tat.generate_layers(np.asarray(cv.imread(ime.image_path, flags=cv.IMREAD_GRAYSCALE)),
                                                   self.ui.clusterCount.value(), self.ui.runCount.value(),
                                                   self.ui.maxIterCount.value())
 
-            layers_paths: [str] = []
-            output_basename = f"{input_basename}_cluster.png"
-            output_path = os.path.join(self.output_directory, output_basename)
+            layers_paths: [tuple[str, str]] = []
+            for i in range(len(layers)):
+                layer = layers[i].astype(np.uint8)
+                output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_layer_{i}")
+                output_image_path = f"{output_path_no_ext}.png"
+                output_matrix_path = f"{output_path_no_ext}.npy"
+                np.save(output_matrix_path, layer)
+                cv.imwrite(output_image_path, apply_colormap(layer, cv.COLORMAP_VIRIDIS))
+                layers_paths.append((output_image_path, output_matrix_path))
 
-            np.save(f"{output_path[0:output_path.rfind('.')]}.npy", cluster)
+            output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_cluster")
+            output_image_path = f"{output_path_no_ext}.png"
 
-            cv.imwrite(output_path, apply_colormap(cluster, cv.COLORMAP_JET))
-            qim = load_image(output_path)
-            ime = ClusterImageEntry(layout.parent(), qim, output_path, input_basename, layers_paths)
+            np.save(f"{output_path_no_ext}.npy", cluster)
+            cv.imwrite(output_image_path, apply_colormap(cluster, cv.COLORMAP_JET))
+
+            qim = load_image(output_image_path)
+            ime = ClusterImageEntry(layout.parent(), qim, output_image_path, input_basename_no_ext, layers_paths)
             ime.registerMousePressHandler(self.image_entry_click_handler)
+            ime.register_merge_action(self.merge_layers)
             layout.addWidget(ime)
             self.__generated_images_entries.append(ime)
 
             if first:
                 self.set_preview_image(qim, ime)
                 first = False
-
-            for i in range(len(layers)):
-                layer = layers[i].astype(np.uint8)
-                output_basename = f"{input_basename}_layer_{i}.png"
-                output_path = os.path.join(self.output_directory, output_basename)
-                np.save(f"{output_path[0:output_path.rfind('.')]}.npy", layer)
-                layers_paths.append(output_path)
-
-                cv.imwrite(output_path, apply_colormap(layer, cv.COLORMAP_VIRIDIS))
 
 
 class App(QApplication):
