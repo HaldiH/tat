@@ -11,6 +11,7 @@ from PySide6.QtCore import Slot
 
 from .api import Tat
 from . import CheckableImageEntry, PreviewWindow, ClusterImageEntry, ClusterEditor
+from .LayerData import LayerData
 from .Ui_MainWindow import Ui_MainWindow
 from .Ui_ProgressBar import Ui_ProgressBar
 from .Utils import load_image, apply_colormap
@@ -68,14 +69,13 @@ class MainWindow(PreviewWindow):
             return
 
         for ime in self.__generated_images_entries:
-            ime: ClusterImageEntry
             merged: Optional[np.ndarray] = None
             merged_str = ""
             for i in layers_indices:
                 merged_str += str(i) if i == layers_indices[0] else f"+{str(i)}"
 
-                _, layer_matrix_path = ime.get_layer_paths(i)
-                layer = np.load(layer_matrix_path)
+                layer_data: LayerData = ime.get_layer_data(i)
+                layer = np.load(layer_data.array_path)
                 merged = layer if merged is None else merged | layer
 
             for i in sorted(layers_indices, reverse=True):
@@ -94,7 +94,7 @@ class MainWindow(PreviewWindow):
             cv.imwrite(merged_image_path, colored)
             np.save(merged_array_path, merged)
 
-            ime.add_layer_paths(merged_image_path, merged_array_path)
+            ime.add_layer_data(LayerData(merged_image_path, merged_array_path, is_merger=True, merged_from=merged_str))
 
     @Slot()
     def load_input_directory(self):
@@ -162,14 +162,14 @@ class MainWindow(PreviewWindow):
                                               self.ui.clusterCount.value(), self.ui.runCount.value(),
                                               self.ui.maxIterCount.value())
 
-        layers_paths: [tuple[str, str]] = []
+        layers_data: list[LayerData] = []
         for i, layer in enumerate(layers):
             output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_layer_{i}")
             output_image_path = f"{output_path_no_ext}.png"
             output_matrix_path = f"{output_path_no_ext}.npy"
             np.save(output_matrix_path, layer)
             cv.imwrite(output_image_path, apply_colormap(layer, cv.COLORMAP_VIRIDIS))
-            layers_paths.append((output_image_path, output_matrix_path))
+            layers_data.append(LayerData(output_image_path, output_matrix_path))
 
         output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_cluster")
         output_image_path = f"{output_path_no_ext}.png"
@@ -180,7 +180,7 @@ class MainWindow(PreviewWindow):
 
         qim = load_image(output_image_path)
         ime = ClusterImageEntry(container.parent(), qim, output_image_path, output_array_path, input_basename_no_ext,
-                                layers_paths)
+                                layers_data)
         ime.registerMousePressHandler(self.image_entry_click_handler)
         ime.register_merge_action(self.merge_layers)
         ime.register_mouse_double_click_action(self.open_preview_window)
@@ -201,14 +201,14 @@ class MainWindow(PreviewWindow):
                                                   self.ui.clusterCount.value(), self.ui.runCount.value(),
                                                   self.ui.maxIterCount.value())
 
-            layers_paths: [tuple[str, str]] = []
+            layers_data: list[LayerData] = []
             for i, layer in enumerate(layers):
                 output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_layer_{i}")
                 output_image_path = f"{output_path_no_ext}.png"
-                output_matrix_path = f"{output_path_no_ext}.npy"
-                np.save(output_matrix_path, layer)
+                output_array_path = f"{output_path_no_ext}.npy"
+                np.save(output_array_path, layer)
                 cv.imwrite(output_image_path, apply_colormap(layer, cv.COLORMAP_VIRIDIS))
-                layers_paths.append((output_image_path, output_matrix_path))
+                layers_data.append(LayerData(output_image_path, output_array_path))
 
             output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_cluster")
             output_image_path = f"{output_path_no_ext}.png"
@@ -219,7 +219,7 @@ class MainWindow(PreviewWindow):
 
             qim = load_image(output_image_path)
             ime = ClusterImageEntry(layout.parent(), qim, output_image_path, output_array_path, input_basename_no_ext,
-                                    layers_paths)
+                                    layers_data)
             ime.registerMousePressHandler(self.image_entry_click_handler)
             ime.register_merge_action(self.merge_layers)
             ime.register_mouse_double_click_action(self.open_preview_window)
