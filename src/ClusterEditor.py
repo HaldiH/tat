@@ -60,7 +60,8 @@ class ClusterEditor(PreviewWindow):
             layer_data = self.cluster_image_entry.get_layer_data(i)
             array = np.load(layer_data.array_path)
             qim: QImage = load_image(layer_data.image_path)
-            ime = LayerImageEntry(self, qim, array, f"merger {str(i)}" if layer_data.is_merger else str(i))
+            ime = LayerImageEntry(self, qim, array,
+                                  f"merger {layer_data.merged_from}" if layer_data.is_merger else str(i))
             ime.registerMousePressHandler(self.image_entry_click_handler)
             self.add_source_image_entry(ime)
 
@@ -157,7 +158,8 @@ class ClusterEditor(PreviewWindow):
             layer_data = self.cluster_image_entry.get_layer_data(i)
             array = np.load(layer_data.array_path)
             qim: QImage = load_image(layer_data.image_path)
-            ime = LayerImageEntry(self, qim, array, f"merger {str(i)}" if layer_data.is_merger else str(i))
+            ime = LayerImageEntry(self, qim, array,
+                                  f"merger {layer_data.merged_from}" if layer_data.is_merger else str(i))
             ime.registerMousePressHandler(self.image_entry_click_handler)
             self.add_source_image_entry(ime)
             if i == 0:
