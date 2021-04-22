@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Callable, Final, Any, Optional
-from Utils import fit_to_frame
+from .Utils import fit_to_frame
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QLabel, QSizePolicy, QFrame
 from PySide6.QtGui import QImage, QPixmap, QColor, QMouseEvent
@@ -8,14 +8,15 @@ from PySide6.QtCore import Qt, QEvent, QSize
 
 
 class ImageEntry(QWidget):
-    def __init__(self, parent: QWidget, image: QImage, image_path: str, name: str, array_path: Optional[str] = None):
+    def __init__(self, parent: QWidget, image: QImage, image_path: Optional[str], name: str,
+                 array_path: Optional[str] = None):
         super(ImageEntry, self).__init__(parent)
         self.__selected = False
         self.__ime_layout = QVBoxLayout(self)
-        self.__mouse_pressed_handlers: [Callable[[ImageEntry, QMouseEvent], Any]] = []
+        self.__mouse_pressed_handlers: list[Callable[[ImageEntry, QMouseEvent], Any]] = []
         self.setAutoFillBackground(True)
         self.__default_background_color = self.palette().color(self.backgroundRole())
-        self.image_path: Final[str] = image_path
+        self.image_path: Final[Optional[str]] = image_path
         self.array_path: Final[Optional[str]] = array_path
         self.basename: Final[str] = name
 

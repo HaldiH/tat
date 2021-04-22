@@ -5,16 +5,15 @@ from PySide6.QtCore import QSize
 from abc import abstractmethod
 from typing import Optional
 
-from ImageEntry import ImageEntry
-from SourceImageEntry import SourceImageEntry
-from Utils import load_image, fit_to_frame
+from . import ImageEntry, CheckableImageEntry
+from .Utils import load_image, fit_to_frame
 
 
 class PreviewWindow(QMainWindow):
     def __init__(self, parent: Optional[QWidget]):
         super(PreviewWindow, self).__init__(parent)
         self._selected_image_entry: Optional[ImageEntry] = None
-        self._source_image_entries: [SourceImageEntry] = []
+        self._source_image_entries: list[CheckableImageEntry] = []
 
     @abstractmethod
     def image_preview(self) -> QLabel:
@@ -24,7 +23,7 @@ class PreviewWindow(QMainWindow):
     def source_layout(self) -> QLayout:
         raise NotImplementedError
 
-    def add_source_image_entry(self, ime: SourceImageEntry):
+    def add_source_image_entry(self, ime: CheckableImageEntry) -> None:
         self._source_image_entries.append(ime)
         self.source_layout().addWidget(ime)
 
@@ -43,7 +42,7 @@ class PreviewWindow(QMainWindow):
         self._selected_image_entry = image_entry
         image_entry.setSelected(True)
 
-    def clear_preview_image(self):
+    def clear_preview_image(self) -> None:
         self.image_preview().setText("Preview")
         if self._selected_image_entry is not None:
             self._selected_image_entry.setSelected(False)

@@ -1,15 +1,16 @@
+from __future__ import annotations
+
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QImage, QMouseEvent
 
-from ClusterEditor import ClusterEditor
-from PreviewWindow import PreviewWindow
-from ImageEntry import ImageEntry
+from . import ImageEntry
 
 from typing import Optional, Callable, Any
 
 
 class ClusterImageEntry(ImageEntry):
-    def __init__(self, parent: QWidget, image: QImage, image_path: str, name: str, layers_paths: [tuple[str, str]]):
+    def __init__(self, parent: QWidget, image: QImage, image_path: str, array_path: str, name: str,
+                 layers_paths: list[tuple[str, str]]):
         """
         Instantiate a ClusterImageEntry object
         :param parent: The widget calling the method
@@ -18,19 +19,16 @@ class ClusterImageEntry(ImageEntry):
         :param name: The name that will be showed below the thumbnail
         :param layers_paths: A list of tuples containing every layer image and matrix path
         """
-        super(ClusterImageEntry, self).__init__(parent, image, image_path, name)
+        super(ClusterImageEntry, self).__init__(parent, image, image_path, name, array_path)
         t = list(zip(*layers_paths))
         self.__layers_images_paths = list(t[0])
         self.__layers_arrays_paths = list(t[1])
-        self.editorWindow: Optional[PreviewWindow] = None
-        self.__merge_actions: [Callable[[[int]], Any]] = []
+        self.__merge_actions: list[Callable[[[int]], Any]] = []
+        self.__mouse_double_click_actions: list[Callable[[ClusterImageEntry], Any]] = []
 
     def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:
-        if self.editorWindow is not None and self.editorWindow.isVisible():
-            self.editorWindow.activateWindow()
-            return
-        self.editorWindow = ClusterEditor(self.parent(), self)
-        self.editorWindow.show()
+        for action in self.__mouse_double_click_actions:
+            action(self)
 
     def layer_count(self) -> int:
         return len(self.__layers_images_paths)
@@ -48,6 +46,5 @@ class ClusterImageEntry(ImageEntry):
     def register_merge_action(self, action: Callable[[[int]], Any]):
         self.__merge_actions.append(action)
 
-    def merge(self, indices: [int]):
-        for action in self.__merge_actions:
-            action(indices)
+    def register_mouse_double_click_action(self, action: Callable[[ClusterImageEntry], Any]):
+        self.__mouse_double_click_actions.append(action)

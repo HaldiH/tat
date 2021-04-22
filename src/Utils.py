@@ -3,6 +3,7 @@ from PySide6.QtCore import QSize
 
 import numpy as np
 import cv2 as cv
+
 from typing import Optional
 
 
@@ -30,3 +31,10 @@ def array2d_to_pixmap(array: np.ndarray, normalize=False, colormap: int = cv.COL
         return QPixmap.fromImage(QImage(array.data, width, height, color_bytes * width, QImage.Format_BGR888))
     height, width = array.shape
     return QPixmap.fromImage(QImage(array.data, width, height, width, QImage.Format_Grayscale8))
+
+
+def create_cluster(layers: list[np.ndarray], normalized=False) -> Optional[np.ndarray]:
+    cluster: Optional[np.ndarray] = None
+    for index, layer in enumerate(layers):
+        cluster = layer.copy() if cluster is None else cluster + layer * (index + 1)
+    return cluster / np.max(cluster) if normalized else cluster

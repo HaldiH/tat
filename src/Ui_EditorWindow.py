@@ -34,17 +34,27 @@ class Ui_EditorWindow(object):
         self.scrollAreaLayers.setWidgetResizable(True)
         self.scrollAreaLayersContents = QWidget()
         self.scrollAreaLayersContents.setObjectName(u"scrollAreaLayersContents")
-        self.scrollAreaLayersContents.setGeometry(QRect(0, 0, 148, 548))
+        self.scrollAreaLayersContents.setGeometry(QRect(0, 0, 148, 484))
         self.verticalLayout = QVBoxLayout(self.scrollAreaLayersContents)
         self.verticalLayout.setObjectName(u"verticalLayout")
         self.scrollAreaLayers.setWidget(self.scrollAreaLayersContents)
 
-        self.gridLayout_2.addWidget(self.scrollAreaLayers, 1, 1, 1, 1)
+        self.gridLayout_2.addWidget(self.scrollAreaLayers, 4, 1, 1, 1)
+
+        self.applyButton = QPushButton(self.centralwidget)
+        self.applyButton.setObjectName(u"applyButton")
+
+        self.gridLayout_2.addWidget(self.applyButton, 2, 1, 1, 1)
 
         self.mergeButton = QPushButton(self.centralwidget)
         self.mergeButton.setObjectName(u"mergeButton")
 
         self.gridLayout_2.addWidget(self.mergeButton, 0, 1, 1, 1)
+
+        self.resetButton = QPushButton(self.centralwidget)
+        self.resetButton.setObjectName(u"resetButton")
+
+        self.gridLayout_2.addWidget(self.resetButton, 1, 1, 1, 1)
 
         self.imageFrame = QFrame(self.centralwidget)
         self.imageFrame.setObjectName(u"imageFrame")
@@ -65,7 +75,7 @@ class Ui_EditorWindow(object):
         self.gridLayout.addWidget(self.imageLabel, 0, 0, 1, 1)
 
 
-        self.gridLayout_2.addWidget(self.imageFrame, 0, 0, 2, 1)
+        self.gridLayout_2.addWidget(self.imageFrame, 0, 0, 5, 1)
 
         EditorWindow.setCentralWidget(self.centralwidget)
 
@@ -76,7 +86,9 @@ class Ui_EditorWindow(object):
 
     def retranslateUi(self, EditorWindow):
         EditorWindow.setWindowTitle(QCoreApplication.translate("EditorWindow", u"Cluster Editor", None))
+        self.applyButton.setText(QCoreApplication.translate("EditorWindow", u"Apply to all", None))
         self.mergeButton.setText(QCoreApplication.translate("EditorWindow", u"Merge", None))
+        self.resetButton.setText(QCoreApplication.translate("EditorWindow", u"Reset", None))
         self.imageLabel.setText(QCoreApplication.translate("EditorWindow", u"Layer", None))
     # retranslateUi
 

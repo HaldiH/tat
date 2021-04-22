@@ -48,7 +48,7 @@ class Tat:
 
         layers = []
         for i in range(len(monochrome_labeled_cluster)):
-            layer = np.zeros(shape=np.shape(monochrome_labeled_segments))
+            layer = np.zeros(shape=np.shape(monochrome_labeled_segments)).astype(np.uint8)
             layer[monochrome_labeled_segments == monochrome_labeled_cluster[i]] = 1
             layers.append(layer)
         return layers, monochrome_labeled_segments

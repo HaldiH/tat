@@ -1,22 +1,19 @@
-import sys
 import os
+import threading
 from pathlib import Path
-
-from PySide6.QtWidgets import QApplication, QFileDialog, QLabel, QLayout
-from PySide6.QtCore import Slot, QEvent, QSize
-from PySide6.QtGui import QPixmap, QImage, QResizeEvent
-
-from api import Tat
-from mainwindow import Ui_MainWindow
-from SourceImageEntry import SourceImageEntry
-from ImageEntry import ImageEntry
-from PreviewWindow import PreviewWindow
-from ClusterImageEntry import ClusterImageEntry
-from Utils import fit_to_frame, load_image, apply_colormap
 from typing import Optional
 
 import numpy as np
 import cv2 as cv
+
+from PySide6.QtWidgets import QFileDialog, QLabel, QLayout, QDialog, QProgressBar
+from PySide6.QtCore import Slot
+
+from .api import Tat
+from . import CheckableImageEntry, PreviewWindow, ClusterImageEntry, ClusterEditor
+from .Ui_MainWindow import Ui_MainWindow
+from .Ui_ProgressBar import Ui_ProgressBar
+from .Utils import load_image, apply_colormap
 
 
 class MainWindow(PreviewWindow):
@@ -27,8 +24,9 @@ class MainWindow(PreviewWindow):
 
         self.input_directory = ""
         self.output_directory = ""
+        self.editor_window: Optional[ClusterEditor] = None
 
-        self.__generated_images_entries: [ClusterImageEntry] = []
+        self.__generated_images_entries: list[ClusterImageEntry] = []
 
         self.ui.buttonInputDir.clicked.connect(self.load_input_directory)
         self.ui.buttonOutputDir.clicked.connect(self.load_output_directory)
@@ -52,7 +50,15 @@ class MainWindow(PreviewWindow):
             ime.close()
         self.__generated_images_entries.clear()
 
-    def merge_layers(self, layers_indices: [int]) -> None:
+    def open_preview_window(self, calling_image_entry: ClusterImageEntry):
+        if self.editor_window is not None and self.editor_window.isVisible():
+            self.editor_window.activateWindow()
+            return
+        self.editor_window = ClusterEditor(self, calling_image_entry)
+        self.editor_window.register_merge_handler(self.merge_layers)
+        self.editor_window.show()
+
+    def merge_layers(self, layers_indices: list[int]) -> None:
         """
         Merge all the specified layers
         :param layers_indices: A range of the layers to merge
@@ -109,7 +115,7 @@ class MainWindow(PreviewWindow):
 
             qim = load_image(entry.path)
 
-            ime = SourceImageEntry(src_layout.parent(), qim, entry.path, entry.name)
+            ime = CheckableImageEntry(src_layout.parent(), qim, entry.name, entry.path)
             ime.registerMousePressHandler(self.image_entry_click_handler)
             self.add_source_image_entry(ime)
 
@@ -131,6 +137,58 @@ class MainWindow(PreviewWindow):
             self.ui.buttonGenerate.setEnabled(True)
 
     @Slot()
+    def generate_handler(self):
+        progress_bar = QDialog(self)
+        progress_bar.ui = Ui_ProgressBar()
+        progress_bar.ui.setupUi(progress_bar)
+
+        container = self.ui.scrollAreaWidgetContentsDst.layout()
+        img_count = 0
+        for index, ime in enumerate(self._source_image_entries):
+            ime: CheckableImageEntry
+            if not ime.isChecked():
+                continue
+            thread = threading.Thread(target=self.generate_cluster, args=(ime, container, progress_bar.ui.progressBar))
+            thread.start()
+            img_count += 1
+
+        progress_bar.ui.progressBar.setMaximum(img_count)
+        progress_bar.show()
+
+    # WIP
+    def generate_cluster(self, ime: CheckableImageEntry, container: QLayout, progressbar: QProgressBar):
+        input_basename_no_ext = (lambda basename: basename[0:basename.rfind(".")])(os.path.basename(ime.image_path))
+        layers, cluster = Tat.generate_layers(np.asarray(cv.imread(ime.image_path, flags=cv.IMREAD_GRAYSCALE)),
+                                              self.ui.clusterCount.value(), self.ui.runCount.value(),
+                                              self.ui.maxIterCount.value())
+
+        layers_paths: [tuple[str, str]] = []
+        for i, layer in enumerate(layers):
+            output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_layer_{i}")
+            output_image_path = f"{output_path_no_ext}.png"
+            output_matrix_path = f"{output_path_no_ext}.npy"
+            np.save(output_matrix_path, layer)
+            cv.imwrite(output_image_path, apply_colormap(layer, cv.COLORMAP_VIRIDIS))
+            layers_paths.append((output_image_path, output_matrix_path))
+
+        output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_cluster")
+        output_image_path = f"{output_path_no_ext}.png"
+        output_array_path = f"{output_path_no_ext}.pny"
+
+        np.save(output_array_path, cluster)
+        cv.imwrite(output_image_path, apply_colormap(cluster, cv.COLORMAP_JET))
+
+        qim = load_image(output_image_path)
+        ime = ClusterImageEntry(container.parent(), qim, output_image_path, output_array_path, input_basename_no_ext,
+                                layers_paths)
+        ime.registerMousePressHandler(self.image_entry_click_handler)
+        ime.register_merge_action(self.merge_layers)
+        ime.register_mouse_double_click_action(self.open_preview_window)
+        container.addWidget(ime)
+        self.__generated_images_entries.append(ime)
+        progressbar.setValue(progressbar.value() + 1)
+
+    @Slot()
     def generate(self):
         layout = self.ui.scrollAreaWidgetContentsDst.layout()
         first = True
@@ -144,8 +202,7 @@ class MainWindow(PreviewWindow):
                                                   self.ui.maxIterCount.value())
 
             layers_paths: [tuple[str, str]] = []
-            for i in range(len(layers)):
-                layer = layers[i].astype(np.uint8)
+            for i, layer in enumerate(layers):
                 output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_layer_{i}")
                 output_image_path = f"{output_path_no_ext}.png"
                 output_matrix_path = f"{output_path_no_ext}.npy"
@@ -155,29 +212,20 @@ class MainWindow(PreviewWindow):
 
             output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_cluster")
             output_image_path = f"{output_path_no_ext}.png"
+            output_array_path = f"{output_path_no_ext}.npy"
 
-            np.save(f"{output_path_no_ext}.npy", cluster)
+            np.save(output_array_path, cluster)
             cv.imwrite(output_image_path, apply_colormap(cluster, cv.COLORMAP_JET))
 
             qim = load_image(output_image_path)
-            ime = ClusterImageEntry(layout.parent(), qim, output_image_path, input_basename_no_ext, layers_paths)
+            ime = ClusterImageEntry(layout.parent(), qim, output_image_path, output_array_path, input_basename_no_ext,
+                                    layers_paths)
             ime.registerMousePressHandler(self.image_entry_click_handler)
             ime.register_merge_action(self.merge_layers)
+            ime.register_mouse_double_click_action(self.open_preview_window)
             layout.addWidget(ime)
             self.__generated_images_entries.append(ime)
 
             if first:
                 self.set_preview_image(qim, ime)
                 first = False
-
-
-class App(QApplication):
-    def __init__(self):
-        super(App, self).__init__()
-        self.main_window = MainWindow()
-        self.main_window.show()
-
-
-if __name__ == "__main__":
-    app = App()
-    sys.exit(app.exec_())

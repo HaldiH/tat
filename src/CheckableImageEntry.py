@@ -1,15 +1,16 @@
 from PySide6.QtWidgets import QWidget, QCheckBox, QSizePolicy
 from PySide6.QtGui import QImage
 from PySide6.QtCore import Qt
-from ImageEntry import ImageEntry
+
+from . import ImageEntry
 
 from typing import Optional
 
 
-class SourceImageEntry(ImageEntry):
-    def __init__(self, parent: QWidget, image: QImage, image_path: str, name: str, array_path: Optional[str] = None,
-                 default_check=True):
-        super(SourceImageEntry, self).__init__(parent, image, image_path, name, array_path)
+class CheckableImageEntry(ImageEntry):
+    def __init__(self, parent: QWidget, image: QImage, name: str, image_path: Optional[str] = None,
+                 array_path: Optional[str] = None, default_check=True):
+        super(CheckableImageEntry, self).__init__(parent, image, image_path, name, array_path)
         layout = self.layout()
 
         self.__check_box = QCheckBox(self)
