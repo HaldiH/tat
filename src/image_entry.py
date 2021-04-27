@@ -1,10 +1,10 @@
 from __future__ import annotations
 from typing import Callable, Final, Any, Optional
-from .Utils import fit_to_frame
+from .utils import fit_to_frame
 
-from PySide6.QtWidgets import QWidget, QVBoxLayout, QGridLayout, QLabel, QSizePolicy, QFrame
+from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 from PySide6.QtGui import QImage, QPixmap, QColor, QMouseEvent
-from PySide6.QtCore import Qt, QEvent, QSize
+from PySide6.QtCore import Qt, QSize
 
 
 class ImageEntry(QWidget):

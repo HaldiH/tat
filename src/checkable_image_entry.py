@@ -2,7 +2,7 @@ from PySide6.QtWidgets import QWidget, QCheckBox, QSizePolicy
 from PySide6.QtGui import QImage
 from PySide6.QtCore import Qt
 
-from . import ImageEntry
+from .image_entry import ImageEntry
 
 from typing import Optional
 

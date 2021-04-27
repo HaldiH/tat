@@ -1,4 +1,3 @@
-import os
 from typing import Optional, Callable, Any
 
 import cv2 as cv
@@ -8,9 +7,12 @@ from PySide6.QtWidgets import QLayout, QLabel, QWidget, QGridLayout
 from PySide6.QtGui import QImage, QMouseEvent, QCloseEvent, QResizeEvent, QMoveEvent, QPixmap
 from PySide6.QtCore import Slot, QSize, QPoint, Qt
 
-from .Ui_EditorWindow import Ui_EditorWindow
-from . import PreviewWindow, ClusterImageEntry, LayerImageEntry
-from .Utils import load_image, array2d_to_pixmap, fit_to_frame, create_cluster
+from .ui_editor_window import Ui_EditorWindow
+from .preview_window import PreviewWindow
+from .cluster_image_entry import ClusterImageEntry
+from .layer_image_entry import LayerImageEntry
+from .layer_data import LayerData
+from .utils import load_image, array2d_to_pixmap, fit_to_frame, create_cluster
 
 
 class CLusterPreviewWindow(QWidget):
@@ -60,8 +62,7 @@ class ClusterEditor(PreviewWindow):
             layer_data = self.cluster_image_entry.get_layer_data(i)
             array = np.load(layer_data.array_path)
             qim: QImage = load_image(layer_data.image_path)
-            ime = LayerImageEntry(self, qim, array,
-                                  f"merger {layer_data.merged_from}" if layer_data.is_merger else str(i))
+            ime = LayerImageEntry(self, qim, array, layer_data.get_name(), layer_index=i)
             ime.registerMousePressHandler(self.image_entry_click_handler)
             self.add_source_image_entry(ime)
 
@@ -100,13 +101,18 @@ class ClusterEditor(PreviewWindow):
     @Slot()
     def merge(self):
         checked_entries: list[int] = []
-        merger_str = ""
         merger: Optional[np.ndarray] = None
+        parent_layers: list[int] = []
         for index, ime in enumerate(self._source_image_entries):
             if not ime.isChecked():
                 continue
 
-            merger_str += str(index) if merger is None else f"+{str(index)}"
+            if ime.layer_data.is_merger:
+                assert ime.layer_data.parent_layers is not None
+                parent_layers.extend(ime.layer_data.parent_layers)
+            else:
+                assert ime.layer_data.layer_index is not None
+                parent_layers.append(ime.layer_data.layer_index)
 
             checked_entries.append(index)
             merger = self._source_image_entries[index].array if merger is None else merger | self._source_image_entries[
@@ -114,7 +120,7 @@ class ClusterEditor(PreviewWindow):
             ime.setChecked(False)
             ime.close()
 
-        if len(checked_entries) == 0:
+        if len(checked_entries) < 2:
             return
 
         for i in reversed(checked_entries):
@@ -126,8 +132,8 @@ class ClusterEditor(PreviewWindow):
         self.applied_mergers.append(checked_entries)
 
         qim: QImage = array2d_to_pixmap(merger, normalize=True).toImage()
-
-        merged_ime = LayerImageEntry(self, qim, merger, f"merger {merger_str}")
+        merged_ime = LayerImageEntry(self, qim, merger, f"merger {LayerData.indices2str(parent_layers)}",
+                                     is_merger=True, parent_layers=parent_layers)
         merged_ime.registerMousePressHandler(self.image_entry_click_handler)
         self.set_preview_image(qim, merged_ime)
         self.add_source_image_entry(merged_ime)
@@ -158,8 +164,8 @@ class ClusterEditor(PreviewWindow):
             layer_data = self.cluster_image_entry.get_layer_data(i)
             array = np.load(layer_data.array_path)
             qim: QImage = load_image(layer_data.image_path)
-            ime = LayerImageEntry(self, qim, array,
-                                  f"merger {layer_data.merged_from}" if layer_data.is_merger else str(i))
+            ime = LayerImageEntry(self, qim, array, layer_data.get_name(), layer_data.is_merger, layer_data.layer_index,
+                                  layer_data.parent_layers)
             ime.registerMousePressHandler(self.image_entry_click_handler)
             self.add_source_image_entry(ime)
             if i == 0:

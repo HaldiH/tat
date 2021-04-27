@@ -33,6 +33,12 @@ def array2d_to_pixmap(array: np.ndarray, normalize=False, colormap: int = cv.COL
     return QPixmap.fromImage(QImage(array.data, width, height, width, QImage.Format_Grayscale8))
 
 
+def array3d_to_pixmap(array: np.ndarray) -> QPixmap:
+    assert array.ndim == 3
+    height, width, color_bytes = array.shape
+    return QPixmap.fromImage(QImage(array.data, width, height, color_bytes * width, QImage.Format_BGR888))
+
+
 def create_cluster(layers: list[np.ndarray], normalized=False) -> Optional[np.ndarray]:
     cluster: Optional[np.ndarray] = None
     for index, layer in enumerate(layers):
