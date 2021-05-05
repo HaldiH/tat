@@ -6,7 +6,7 @@ from PySide6.QtGui import QImage, QMouseEvent
 from .image_entry import ImageEntry
 from .layer_data import LayerData
 
-from typing import Callable, Any
+from typing import Callable, Any, Final
 
 
 class ClusterImageEntry(ImageEntry):
@@ -21,7 +21,7 @@ class ClusterImageEntry(ImageEntry):
         :param layers_data: A list of LayerData containing all the information about a layer
         """
         super(ClusterImageEntry, self).__init__(parent, image, image_path, name, array_path)
-        self.layers_data: list[LayerData] = layers_data
+        self.layers_data: Final[list[LayerData]] = layers_data
         self.__mouse_double_click_actions: list[Callable[[ClusterImageEntry], Any]] = []
 
     def mouseDoubleClickEvent(self, event: QMouseEvent) -> None:

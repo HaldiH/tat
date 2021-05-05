@@ -73,7 +73,7 @@ class Ui_MainWindow(object):
         sizePolicy1.setHeightForWidth(self.runCount.sizePolicy().hasHeightForWidth())
         self.runCount.setSizePolicy(sizePolicy1)
         self.runCount.setMaximum(1000)
-        self.runCount.setValue(50)
+        self.runCount.setValue(5)
 
         self.formLayout.setWidget(1, QFormLayout.FieldRole, self.runCount)
 

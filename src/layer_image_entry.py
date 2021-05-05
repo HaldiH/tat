@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Final
 
 import numpy as np
 
@@ -14,5 +14,5 @@ class LayerImageEntry(CheckableImageEntry):
                  layer_index: Optional[int] = None, parent_layers: Optional[list[int]] = None):
         super(LayerImageEntry, self).__init__(parent, image, name, default_check=False)
 
-        self.array = array
-        self.layer_data = LayerData(None, None, is_merger, parent_layers, layer_index)
+        self.array: Final[np.ndarray] = array
+        self.layer_data: Final[LayerData] = LayerData(None, None, is_merger, parent_layers, layer_index)

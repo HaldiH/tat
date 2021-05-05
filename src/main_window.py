@@ -45,10 +45,6 @@ class MainWindow(PreviewWindow):
     def image_preview(self) -> QLabel:
         return self.ui.imagePreview
 
-    def clear_generated(self):
-        for ime in self.__generated_images_entries:
-            ime.close()
-
     def clear_image_entries(self):
         super(MainWindow, self).clear_image_entries()
         for ime in self.__generated_images_entries:
@@ -135,6 +131,17 @@ class MainWindow(PreviewWindow):
                 first = False
 
         self.__generated_images_entries = merged_cluster_ime
+
+    def unmerge_layer(self):
+        pass
+
+    @Slot()
+    def clear_generated(self):
+        for ime in self.__generated_images_entries:
+            ime.close()
+        self.__generated_images_entries.clear()
+        self.image_preview().setText("Preview")
+        self._selected_image_entry = None
 
     @Slot()
     def load_input_directory(self):
