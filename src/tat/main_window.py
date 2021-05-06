@@ -77,12 +77,12 @@ class MainWindow(PreviewWindow):
             parent_layers: list[int] = []
             for i in layers_indices:
                 layer_data: LayerData = ime.get_layer_data(i)
-                if layer_data.parent_layers is None:
-                    assert layer_data.layer_index is not None
-                    parent_layers.append(layer_data.layer_index)
-                else:
+                if layer_data.is_merger:
                     assert layer_data.parent_layers is not None
                     parent_layers.extend(layer_data.parent_layers)
+                else:
+                    assert layer_data.layer_index is not None
+                    parent_layers.append(layer_data.layer_index)
 
                 layer = np.load(layer_data.array_path)
                 merged = layer if merged is None else merged | layer

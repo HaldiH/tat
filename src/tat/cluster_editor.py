@@ -7,7 +7,7 @@ import numpy as np
 
 from PySide6.QtWidgets import QLayout, QLabel, QWidget, QGridLayout
 from PySide6.QtGui import QImage, QMouseEvent, QCloseEvent, QResizeEvent, QMoveEvent, QPixmap
-from PySide6.QtCore import Slot, QSize, QPoint, Qt
+from PySide6.QtCore import Slot, QSize, QPoint, Qt, QEvent
 
 from .ui_editor_window import Ui_EditorWindow
 from .preview_window import PreviewWindow
@@ -55,7 +55,7 @@ class ClusterEditor(PreviewWindow):
         self.ui.undoButton.clicked.connect(self.undo)
 
         self.__merge_callback: Optional[Callable[[list[int]], Any]] = None
-        self.__unmerge_callback: Optional
+        self.__unmerge_callback: Optional[Callable] = None
 
         self._source_image_entries: list[LayerImageEntry] = []
         self._selected_image_entry: Optional[LayerImageEntry] = None
@@ -75,7 +75,8 @@ class ClusterEditor(PreviewWindow):
             layer_data = self.__cluster_image_entry.get_layer_data(i)
             array = np.load(layer_data.array_path)
             qim: QImage = load_image(layer_data.image_path)
-            ime = LayerImageEntry(self, qim, array, layer_data.get_name(), layer_index=i)
+            ime = LayerImageEntry(self, qim, array, layer_data.get_name(), is_merger=layer_data.is_merger,
+                                  layer_index=layer_data.layer_index, parent_layers=layer_data.parent_layers)
             ime.registerMousePressHandler(self.image_entry_click_handler)
             self.add_source_image_entry(ime)
 
@@ -232,6 +233,7 @@ class ClusterEditor(PreviewWindow):
             return
 
         _, pending_ime, old_ime = self.__pending_pop()
+        self._source_image_entries.pop()
 
         pending_ime.close()
 
