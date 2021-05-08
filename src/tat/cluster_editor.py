@@ -62,7 +62,7 @@ class ClusterEditor(PreviewWindow):
         self.__cluster_image_entry: ClusterImageEntry = calling_image_entry
         self.__pending_mergers: list[list[int]] = []
         self.__pending_ime: list[LayerImageEntry] = []
-        self.__old_ime: list[list[LayerImageEntry]] = []
+        self.__old_entries: list[list[LayerImageEntry]] = []
         self.__cluster_array: np.ndarray = np.load(self.__cluster_image_entry.array_path)
 
         side_length = self.height() - self.menuBar().height()
@@ -112,18 +112,18 @@ class ClusterEditor(PreviewWindow):
         self.__cluster_preview_window.close()
         self.__cluster_preview_window = None
 
-    def __pending_add(self, mergers_idx: list[int], ime: LayerImageEntry, old_ime: list[LayerImageEntry]) -> None:
+    def __pending_add(self, mergers_idx: list[int], ime: LayerImageEntry, old_entries: list[LayerImageEntry]) -> None:
         if not self.ui.undoButton.isEnabled():
             self.ui.undoButton.setEnabled(True)
         self.__pending_mergers.append(mergers_idx)
         self.__pending_ime.append(ime)
-        self.__old_ime.append(old_ime)
+        self.__old_entries.append(old_entries)
 
     def __pending_clear(self) -> None:
         self.ui.undoButton.setEnabled(False)
         self.__pending_mergers.clear()
         self.__pending_ime.clear()
-        self.__old_ime.clear()
+        self.__old_entries.clear()
 
     def __pending_count(self) -> int:
         return len(self.__pending_mergers)
@@ -131,7 +131,7 @@ class ClusterEditor(PreviewWindow):
     def __pending_pop(self) -> tuple[list[int], LayerImageEntry, list[LayerImageEntry]]:
         if self.__pending_count() == 1:
             self.ui.undoButton.setEnabled(False)
-        return self.__pending_mergers.pop(), self.__pending_ime.pop(), self.__old_ime.pop()
+        return self.__pending_mergers.pop(), self.__pending_ime.pop(), self.__old_entries.pop()
 
     @Slot()
     def merge(self):
@@ -232,13 +232,13 @@ class ClusterEditor(PreviewWindow):
         if self.__pending_count() == 0:
             return
 
-        _, pending_ime, old_ime = self.__pending_pop()
+        indices, pending_ime, old_ime = self.__pending_pop()
         self._source_image_entries.pop()
 
         pending_ime.close()
 
-        for ime in old_ime:
+        for index, ime in zip(indices, old_ime):
             ime.setVisible(True)
-            self.add_source_image_entry(ime)
+            self.add_source_image_entry(ime, index)
         self.image_preview().setText("Layer")
         self.__cluster_preview_window.update_cluster_preview(self.__cluster_image_entry.image_path)

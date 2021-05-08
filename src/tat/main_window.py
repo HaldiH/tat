@@ -250,11 +250,6 @@ class MainWindow(PreviewWindow):
         progress_bar.ui = Ui_ProgressBar()
         progress_bar.ui.setupUi(progress_bar)
 
-        selected_entries: list[CheckableImageEntry] = []
-        for ime in self._source_image_entries:
-            if ime.isChecked():
-                selected_entries.append(ime)
-
         @Slot()
         def add_cluster_image(progress: int, data: tuple[str, str, str, list[LayerData]]):
             image_path, array_path, name, layers_data = data
@@ -269,13 +264,17 @@ class MainWindow(PreviewWindow):
             progress_bar.ui.progressBar.setValue(progress)
             self.__generated_images_entries.append(ime)
 
+        selected_entries = self.get_selected_entries()
+        worker = ClusteringWorker(selected_entries, self.ui.clusterCount.value(), self.ui.runCount.value(),
+                                  self.ui.maxIterCount.value(), self.output_directory)
+
         @Slot()
         def finished_generating():
             progress_bar.close()
+            worker.signals.progress.disconnect(add_cluster_image)
+            worker.signals.finished.disconnect(finished_generating)
             self.ui.buttonGenerate.setEnabled(True)
 
-        worker = ClusteringWorker(selected_entries, self.ui.clusterCount.value(), self.ui.runCount.value(),
-                                  self.ui.maxIterCount.value(), self.output_directory)
         worker.signals.progress.connect(add_cluster_image)
         worker.signals.finished.connect(finished_generating)
         progress_bar.ui.cancelButton.clicked.connect(worker.interrupt)

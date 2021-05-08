@@ -24,8 +24,8 @@ class PreviewWindow(QMainWindow):
     def source_layout(self) -> QLayout:
         raise NotImplementedError
 
-    def add_source_image_entry(self, ime: CheckableImageEntry) -> None:
-        self._source_image_entries.append(ime)
+    def add_source_image_entry(self, ime: CheckableImageEntry, index: Optional[int] = None) -> None:
+        self._source_image_entries.insert(len(self._source_image_entries) if index is None else index, ime)
         self.source_layout().addWidget(ime)
 
     def draw_preview_image(self, image: QImage) -> None:
@@ -71,3 +71,10 @@ class PreviewWindow(QMainWindow):
 
         for ime in self._source_image_entries:
             ime.setChecked(not all_checked)
+
+    def get_selected_entries(self):
+        selected: list[CheckableImageEntry] = []
+        for ime in self._source_image_entries:
+            if ime.isChecked():
+                selected.append(ime)
+        return selected
