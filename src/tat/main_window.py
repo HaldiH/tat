@@ -8,7 +8,7 @@ import cv2 as cv
 from PySide6.QtWidgets import QFileDialog, QLabel, QLayout, QDialog
 from PySide6.QtCore import QObject, Slot, Signal, QThreadPool, QRunnable
 
-from .api import Tat
+from .clustering import Tat
 from .checkable_image_entry import CheckableImageEntry
 from .preview_window import PreviewWindow
 from .cluster_image_entry import ClusterImageEntry
