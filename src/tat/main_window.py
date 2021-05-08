@@ -1,5 +1,7 @@
 import os
+import sys
 import threading
+import traceback
 from pathlib import Path
 from typing import Optional
 
@@ -7,7 +9,7 @@ import numpy as np
 import cv2 as cv
 
 from PySide6.QtWidgets import QFileDialog, QLabel, QLayout, QDialog, QProgressBar
-from PySide6.QtCore import Slot
+from PySide6.QtCore import Slot, Signal, SignalInstance, QThread, QRunnable, QObject, QThreadPool
 
 from .api import Tat
 from .checkable_image_entry import CheckableImageEntry
@@ -20,11 +22,46 @@ from .ui_progress_bar import Ui_ProgressBar
 from .utils import load_image, apply_colormap, create_cluster, array3d_to_pixmap
 
 
+class WorkerSignals(QObject):
+    finished = Signal()
+    error = Signal(tuple)
+    result = Signal(object)
+    progress = Signal(int)
+    intermediate = Signal(object)
+
+
+class Worker(QRunnable):
+    def __init__(self, fn, *args, **kwargs):
+        super(Worker, self).__init__()
+
+        self.fn = fn
+        self.args = args
+        self.kwargs = kwargs
+        self.signals = WorkerSignals()
+
+        self.kwargs['progress_callback'] = self.signals.progress
+        self.kwargs['intermediate_callback'] = self.signals.intermediate
+
+    @Slot()
+    def run(self) -> None:
+        try:
+            result = self.fn(*self.args, **self.kwargs)
+        except:
+            traceback.print_exc()
+            exctype, value = sys.exc_info()[:2]
+            self.signals.error.emit((exctype, value, traceback.format_exc()))
+        else:
+            self.signals.result.emit(result)
+        finally:
+            self.signals.finished.emit()
+
+
 class MainWindow(PreviewWindow):
     def __init__(self):
         super(MainWindow, self).__init__(None)
         self.ui = Ui_MainWindow()
         self.ui.setupUi(self)
+        self.thread_pool = QThreadPool()
 
         self.input_directory = ""
         self.output_directory = ""
@@ -35,7 +72,7 @@ class MainWindow(PreviewWindow):
 
         self.ui.buttonInputDir.clicked.connect(self.load_input_directory)
         self.ui.buttonOutputDir.clicked.connect(self.load_output_directory)
-        self.ui.buttonGenerate.clicked.connect(self.generate)
+        self.ui.buttonGenerate.clicked.connect(self.generate_handler)
         self.ui.buttonCheckUncheck.clicked.connect(self.select_deselect)
         self.ui.buttonClearGenerated.clicked.connect(self.clear_generated)
 
@@ -188,63 +225,50 @@ class MainWindow(PreviewWindow):
 
     @Slot()
     def generate_handler(self):
+        self.ui.buttonGenerate.setEnabled(False)
+
         progress_bar = QDialog(self)
         progress_bar.ui = Ui_ProgressBar()
         progress_bar.ui.setupUi(progress_bar)
 
-        container = self.ui.scrollAreaWidgetContentsDst.layout()
-        img_count = 0
-        for index, ime in enumerate(self._source_image_entries):
-            ime: CheckableImageEntry
-            if not ime.isChecked():
-                continue
-            thread = threading.Thread(target=self.generate_cluster, args=(ime, container, progress_bar.ui.progressBar))
-            thread.start()
-            img_count += 1
+        selected_entries: list[CheckableImageEntry] = []
+        for ime in self._source_image_entries:
+            if ime.isChecked():
+                selected_entries.append(ime)
 
-        progress_bar.ui.progressBar.setMaximum(img_count)
+        @Slot()
+        def finished_generating():
+            progress_bar.close()
+            self.ui.buttonGenerate.setEnabled(True)
+
+        worker = Worker(self.generate_cluster, selected_entries)
+        worker.signals.progress.connect(
+            lambda n: progress_bar.ui.progressBar.setValue(n))
+        worker.signals.finished.connect(lambda: progress_bar.close())
+        worker.signals.intermediate.connect(self.add_cluster_image)
+
+        progress_bar.ui.progressBar.setMaximum(len(selected_entries))
         progress_bar.show()
 
-    # WIP
-    def generate_cluster(self, ime: CheckableImageEntry, container: QLayout, progressbar: QProgressBar):
-        input_basename_no_ext = (lambda basename: basename[0:basename.rfind(".")])(os.path.basename(ime.image_path))
-        layers, cluster = Tat.generate_layers(np.asarray(cv.imread(ime.image_path, flags=cv.IMREAD_GRAYSCALE)),
-                                              self.ui.clusterCount.value(), self.ui.runCount.value(),
-                                              self.ui.maxIterCount.value())
+        self.thread_pool.start(worker)
 
-        layers_data: list[LayerData] = []
-        for i, layer in enumerate(layers):
-            output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_layer_{i}")
-            output_image_path = f"{output_path_no_ext}.png"
-            output_matrix_path = f"{output_path_no_ext}.npy"
-            np.save(output_matrix_path, layer)
-            cv.imwrite(output_image_path, apply_colormap(layer, cv.COLORMAP_VIRIDIS))
-            layers_data.append(LayerData(output_image_path, output_matrix_path, layer_index=i))
-
-        output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_cluster")
-        output_image_path = f"{output_path_no_ext}.png"
-        output_array_path = f"{output_path_no_ext}.pny"
-
-        np.save(output_array_path, cluster)
-        cv.imwrite(output_image_path, apply_colormap(cluster, cv.COLORMAP_JET))
-
-        qim = load_image(output_image_path)
-        ime = ClusterImageEntry(container.parent(), qim, output_image_path, output_array_path, input_basename_no_ext,
-                                layers_data)
+    @Slot()
+    def add_cluster_image(self, data: tuple[str, str, str, list[LayerData]]):
+        image_path, array_path, name, layers_data = data
+        container: QLayout = self.ui.scrollAreaWidgetContentsDst.layout()
+        ime = ClusterImageEntry(container.parent(), load_image(image_path), image_path, array_path, name, layers_data)
         ime.registerMousePressHandler(self.image_entry_click_handler)
         ime.register_mouse_double_click_action(self.open_preview_window)
         container.addWidget(ime)
+        if len(self.__generated_images_entries) == 0:
+            self.set_preview_image(load_image(ime.image_path), ime)
         self.__generated_images_entries.append(ime)
-        progressbar.setValue(progressbar.value() + 1)
 
     @Slot()
-    def generate(self):
-        layout = self.ui.scrollAreaWidgetContentsDst.layout()
-        first = True
-        for ime in self._source_image_entries:
-            if not ime.isChecked() or not Tat.is_image(ime.image_path):
-                continue
-
+    def generate_cluster(self, entries: list[CheckableImageEntry], intermediate_callback: SignalInstance,
+                         progress_callback: SignalInstance):
+        progress = 0
+        for ime in entries:
             input_basename_no_ext = (lambda basename: basename[0:basename.rfind(".")])(os.path.basename(ime.image_path))
             layers, cluster = Tat.generate_layers(np.asarray(cv.imread(ime.image_path, flags=cv.IMREAD_GRAYSCALE)),
                                                   self.ui.clusterCount.value(), self.ui.runCount.value(),
@@ -265,15 +289,6 @@ class MainWindow(PreviewWindow):
 
             np.save(output_array_path, cluster)
             cv.imwrite(output_image_path, apply_colormap(cluster, cv.COLORMAP_JET))
-
-            qim = load_image(output_image_path)
-            ime = ClusterImageEntry(layout.parent(), qim, output_image_path, output_array_path, input_basename_no_ext,
-                                    layers_data)
-            ime.registerMousePressHandler(self.image_entry_click_handler)
-            ime.register_mouse_double_click_action(self.open_preview_window)
-            layout.addWidget(ime)
-            self.__generated_images_entries.append(ime)
-
-            if first:
-                self.set_preview_image(qim, ime)
-                first = False
+            progress += 1
+            progress_callback.emit(progress)
+            intermediate_callback.emit((output_image_path, output_array_path, input_basename_no_ext, layers_data))
