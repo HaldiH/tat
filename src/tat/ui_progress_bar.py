@@ -39,6 +39,17 @@ class Ui_ProgressBar(object):
 
         self.verticalLayout.addWidget(self.progressBar)
 
+        self.cancelButton = QPushButton(ProgressBar)
+        self.cancelButton.setObjectName(u"cancelButton")
+        sizePolicy1 = QSizePolicy(QSizePolicy.Minimum, QSizePolicy.Fixed)
+        sizePolicy1.setHorizontalStretch(0)
+        sizePolicy1.setVerticalStretch(0)
+        sizePolicy1.setHeightForWidth(self.cancelButton.sizePolicy().hasHeightForWidth())
+        self.cancelButton.setSizePolicy(sizePolicy1)
+        self.cancelButton.setMinimumSize(QSize(20, 0))
+
+        self.verticalLayout.addWidget(self.cancelButton)
+
 
         self.retranslateUi(ProgressBar)
 
@@ -49,5 +60,6 @@ class Ui_ProgressBar(object):
         ProgressBar.setWindowTitle(QCoreApplication.translate("ProgressBar", u"Form", None))
         self.label.setText(QCoreApplication.translate("ProgressBar", u"Please wait...", None))
         self.progressBar.setFormat(QCoreApplication.translate("ProgressBar", u"%v/%m", None))
+        self.cancelButton.setText(QCoreApplication.translate("ProgressBar", u"Cancel", None))
     # retranslateUi
 

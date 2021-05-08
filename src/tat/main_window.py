@@ -1,15 +1,12 @@
 import os
-import sys
-import threading
-import traceback
 from pathlib import Path
 from typing import Optional
 
 import numpy as np
 import cv2 as cv
 
-from PySide6.QtWidgets import QFileDialog, QLabel, QLayout, QDialog, QProgressBar
-from PySide6.QtCore import Slot, Signal, SignalInstance, QThread, QRunnable, QObject, QThreadPool
+from PySide6.QtWidgets import QFileDialog, QLabel, QLayout, QDialog
+from PySide6.QtCore import QObject, Slot, Signal, QThreadPool, QRunnable
 
 from .api import Tat
 from .checkable_image_entry import CheckableImageEntry
@@ -22,38 +19,58 @@ from .ui_progress_bar import Ui_ProgressBar
 from .utils import load_image, apply_colormap, create_cluster, array3d_to_pixmap
 
 
-class WorkerSignals(QObject):
+class ClusteringSignals(QObject):
     finished = Signal()
-    error = Signal(tuple)
-    result = Signal(object)
-    progress = Signal(int)
-    intermediate = Signal(object)
+    progress = Signal(int, tuple)
 
 
-class Worker(QRunnable):
-    def __init__(self, fn, *args, **kwargs):
-        super(Worker, self).__init__()
+class ClusteringWorker(QRunnable):
+    signals = ClusteringSignals()
+    is_running = False
 
-        self.fn = fn
-        self.args = args
-        self.kwargs = kwargs
-        self.signals = WorkerSignals()
-
-        self.kwargs['progress_callback'] = self.signals.progress
-        self.kwargs['intermediate_callback'] = self.signals.intermediate
+    def __init__(self, entries: list[CheckableImageEntry], cluster_count: int, run_count: int, max_iter_count: int,
+                 output_directory: str):
+        super(ClusteringWorker, self).__init__()
+        self.entries = entries
+        self.cluster_count = cluster_count
+        self.run_count = run_count
+        self.max_iter_count = max_iter_count
+        self.output_directory = output_directory
 
     @Slot()
     def run(self) -> None:
-        try:
-            result = self.fn(*self.args, **self.kwargs)
-        except:
-            traceback.print_exc()
-            exctype, value = sys.exc_info()[:2]
-            self.signals.error.emit((exctype, value, traceback.format_exc()))
-        else:
-            self.signals.result.emit(result)
-        finally:
-            self.signals.finished.emit()
+        self.is_running = True
+        for index, ime in enumerate(self.entries):
+            if not self.is_running:
+                break
+
+            input_basename_no_ext = (lambda basename: basename[0:basename.rfind(".")])(os.path.basename(ime.image_path))
+            layers, cluster = Tat.generate_layers(np.asarray(cv.imread(ime.image_path, flags=cv.IMREAD_GRAYSCALE)),
+                                                  self.cluster_count, self.run_count, self.max_iter_count)
+
+            layers_data: list[LayerData] = []
+            for i, layer in enumerate(layers):
+                output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_layer_{i}")
+                output_image_path = f"{output_path_no_ext}.png"
+                output_array_path = f"{output_path_no_ext}.npy"
+                np.save(output_array_path, layer)
+                cv.imwrite(output_image_path, apply_colormap(layer, cv.COLORMAP_VIRIDIS))
+                layers_data.append(LayerData(output_image_path, output_array_path, layer_index=i))
+
+            output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_cluster")
+            output_image_path = f"{output_path_no_ext}.png"
+            output_array_path = f"{output_path_no_ext}.npy"
+
+            np.save(output_array_path, cluster)
+            cv.imwrite(output_image_path, apply_colormap(cluster, cv.COLORMAP_JET))
+
+            self.signals.progress.emit(index + 1,
+                                       (output_image_path, output_array_path, input_basename_no_ext, layers_data))
+        self.signals.finished.emit()
+
+    @Slot()
+    def interrupt(self) -> None:
+        self.is_running = False
 
 
 class MainWindow(PreviewWindow):
@@ -182,10 +199,11 @@ class MainWindow(PreviewWindow):
 
     @Slot()
     def load_input_directory(self):
-        self.input_directory = QFileDialog.getExistingDirectory(self)
-        if len(self.input_directory) == 0:
+        in_dir = QFileDialog.getExistingDirectory(self)
+        if len(in_dir) == 0:
             return
 
+        self.input_directory = in_dir
         self.clear_image_entries()
         self.clear_preview_image()
 
@@ -193,7 +211,7 @@ class MainWindow(PreviewWindow):
 
         src_layout = self.source_layout()
         first = True
-        for entry in os.scandir(self.input_directory):
+        for entry in sorted(os.scandir(self.input_directory), key=lambda x: x.name):
             if not Tat.is_image(entry.path):
                 continue
 
@@ -212,10 +230,11 @@ class MainWindow(PreviewWindow):
 
     @Slot()
     def load_output_directory(self):
-        self.output_directory = QFileDialog.getExistingDirectory(self)
-        if len(self.output_directory) == 0:
+        out_dir = QFileDialog.getExistingDirectory(self)
+        if len(out_dir) == 0:
             return
 
+        self.output_directory = out_dir
         self.merger_directory = os.path.join(self.output_directory, "merged")
         Path(self.merger_directory).mkdir(exist_ok=True)
 
@@ -237,58 +256,31 @@ class MainWindow(PreviewWindow):
                 selected_entries.append(ime)
 
         @Slot()
+        def add_cluster_image(progress: int, data: tuple[str, str, str, list[LayerData]]):
+            image_path, array_path, name, layers_data = data
+            container: QLayout = self.ui.scrollAreaWidgetContentsDst.layout()
+            ime = ClusterImageEntry(container.parent(), load_image(image_path), image_path, array_path, name,
+                                    layers_data)
+            ime.registerMousePressHandler(self.image_entry_click_handler)
+            ime.register_mouse_double_click_action(self.open_preview_window)
+            container.addWidget(ime)
+            if len(self.__generated_images_entries) == 0:
+                self.set_preview_image(load_image(ime.image_path), ime)
+            progress_bar.ui.progressBar.setValue(progress)
+            self.__generated_images_entries.append(ime)
+
+        @Slot()
         def finished_generating():
             progress_bar.close()
             self.ui.buttonGenerate.setEnabled(True)
 
-        worker = Worker(self.generate_cluster, selected_entries)
-        worker.signals.progress.connect(
-            lambda n: progress_bar.ui.progressBar.setValue(n))
-        worker.signals.finished.connect(lambda: progress_bar.close())
-        worker.signals.intermediate.connect(self.add_cluster_image)
+        worker = ClusteringWorker(selected_entries, self.ui.clusterCount.value(), self.ui.runCount.value(),
+                                  self.ui.maxIterCount.value(), self.output_directory)
+        worker.signals.progress.connect(add_cluster_image)
+        worker.signals.finished.connect(finished_generating)
+        progress_bar.ui.cancelButton.clicked.connect(worker.interrupt)
 
         progress_bar.ui.progressBar.setMaximum(len(selected_entries))
         progress_bar.show()
 
         self.thread_pool.start(worker)
-
-    @Slot()
-    def add_cluster_image(self, data: tuple[str, str, str, list[LayerData]]):
-        image_path, array_path, name, layers_data = data
-        container: QLayout = self.ui.scrollAreaWidgetContentsDst.layout()
-        ime = ClusterImageEntry(container.parent(), load_image(image_path), image_path, array_path, name, layers_data)
-        ime.registerMousePressHandler(self.image_entry_click_handler)
-        ime.register_mouse_double_click_action(self.open_preview_window)
-        container.addWidget(ime)
-        if len(self.__generated_images_entries) == 0:
-            self.set_preview_image(load_image(ime.image_path), ime)
-        self.__generated_images_entries.append(ime)
-
-    @Slot()
-    def generate_cluster(self, entries: list[CheckableImageEntry], intermediate_callback: SignalInstance,
-                         progress_callback: SignalInstance):
-        progress = 0
-        for ime in entries:
-            input_basename_no_ext = (lambda basename: basename[0:basename.rfind(".")])(os.path.basename(ime.image_path))
-            layers, cluster = Tat.generate_layers(np.asarray(cv.imread(ime.image_path, flags=cv.IMREAD_GRAYSCALE)),
-                                                  self.ui.clusterCount.value(), self.ui.runCount.value(),
-                                                  self.ui.maxIterCount.value())
-
-            layers_data: list[LayerData] = []
-            for i, layer in enumerate(layers):
-                output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_layer_{i}")
-                output_image_path = f"{output_path_no_ext}.png"
-                output_array_path = f"{output_path_no_ext}.npy"
-                np.save(output_array_path, layer)
-                cv.imwrite(output_image_path, apply_colormap(layer, cv.COLORMAP_VIRIDIS))
-                layers_data.append(LayerData(output_image_path, output_array_path, layer_index=i))
-
-            output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_cluster")
-            output_image_path = f"{output_path_no_ext}.png"
-            output_array_path = f"{output_path_no_ext}.npy"
-
-            np.save(output_array_path, cluster)
-            cv.imwrite(output_image_path, apply_colormap(cluster, cv.COLORMAP_JET))
-            progress += 1
-            progress_callback.emit(progress)
-            intermediate_callback.emit((output_image_path, output_array_path, input_basename_no_ext, layers_data))
