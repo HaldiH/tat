@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Callable, Final, Any, Optional
+from typing import Callable, Final, Any, Optional, List
 from .utils import fit_to_frame
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
@@ -13,7 +13,7 @@ class ImageEntry(QWidget):
         super(ImageEntry, self).__init__(parent)
         self.__selected = False
         self.__ime_layout = QVBoxLayout(self)
-        self.__mouse_pressed_handlers: list[Callable[[ImageEntry, QMouseEvent], Any]] = []
+        self.__mouse_pressed_handlers: List[Callable[[ImageEntry, QMouseEvent], Any]] = []
         self.setAutoFillBackground(True)
         self.__default_background_color = self.palette().color(self.backgroundRole())
         self.image_path: Final[Optional[str]] = image_path

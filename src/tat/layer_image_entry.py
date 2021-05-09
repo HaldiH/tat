@@ -1,4 +1,4 @@
-from typing import Optional, Final
+from typing import Optional, Final, List
 
 import numpy as np
 
@@ -11,7 +11,7 @@ from PySide6.QtGui import QImage
 
 class LayerImageEntry(CheckableImageEntry):
     def __init__(self, parent: QWidget, image: QImage, array: np.ndarray, name: str, is_merger: bool = False,
-                 layer_index: Optional[int] = None, parent_layers: Optional[list[int]] = None):
+                 layer_index: Optional[int] = None, parent_layers: Optional[List[int]] = None):
         super(LayerImageEntry, self).__init__(parent, image, name, default_check=False)
 
         self.array: Final[np.ndarray] = array

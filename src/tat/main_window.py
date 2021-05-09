@@ -1,6 +1,6 @@
 import os
 from pathlib import Path
-from typing import Optional
+from typing import Optional, List, Tuple
 
 import numpy as np
 import cv2 as cv
@@ -28,7 +28,7 @@ class ClusteringWorker(QRunnable):
     signals = ClusteringSignals()
     is_running = False
 
-    def __init__(self, entries: list[CheckableImageEntry], cluster_count: int, run_count: int, max_iter_count: int,
+    def __init__(self, entries: List[CheckableImageEntry], cluster_count: int, run_count: int, max_iter_count: int,
                  output_directory: str):
         super(ClusteringWorker, self).__init__()
         self.entries = entries
@@ -48,7 +48,7 @@ class ClusteringWorker(QRunnable):
             layers, cluster = Tat.generate_layers(np.asarray(cv.imread(ime.image_path, flags=cv.IMREAD_GRAYSCALE)),
                                                   self.cluster_count, self.run_count, self.max_iter_count)
 
-            layers_data: list[LayerData] = []
+            layers_data: List[LayerData] = []
             for i, layer in enumerate(layers):
                 output_path_no_ext = os.path.join(self.output_directory, f"{input_basename_no_ext}_layer_{i}")
                 output_image_path = f"{output_path_no_ext}.png"
@@ -85,7 +85,7 @@ class MainWindow(PreviewWindow):
         self.merger_directory: Optional[str] = None
         self.editor_window: Optional[ClusterEditor] = None
 
-        self.__generated_images_entries: list[ClusterImageEntry] = []
+        self.__generated_images_entries: List[ClusterImageEntry] = []
 
         self.ui.buttonInputDir.clicked.connect(self.load_input_directory)
         self.ui.buttonOutputDir.clicked.connect(self.load_output_directory)
@@ -113,7 +113,7 @@ class MainWindow(PreviewWindow):
         self.editor_window.register_merge_handler(self.merge_layers)
         self.editor_window.show()
 
-    def merge_layers(self, layers_indices: list[int]) -> None:
+    def merge_layers(self, layers_indices: List[int]) -> None:
         """
         Merge all the specified layers
         :param layers_indices: A range of the layers to merge
@@ -122,13 +122,13 @@ class MainWindow(PreviewWindow):
         if len(layers_indices) == 0:
             return
 
-        merged_cluster_ime: list[ClusterImageEntry] = []
+        merged_cluster_ime: List[ClusterImageEntry] = []
 
         first = True
         while len(self.__generated_images_entries) > 0:
             ime: ClusterImageEntry = self.__generated_images_entries.pop(0)
             merged: Optional[np.ndarray] = None
-            parent_layers: list[int] = []
+            parent_layers: List[int] = []
             for i in layers_indices:
                 layer_data: LayerData = ime.get_layer_data(i)
                 if layer_data.is_merger:
@@ -251,7 +251,7 @@ class MainWindow(PreviewWindow):
         progress_bar.ui.setupUi(progress_bar)
 
         @Slot()
-        def add_cluster_image(progress: int, data: tuple[str, str, str, list[LayerData]]):
+        def add_cluster_image(progress: int, data: Tuple[str, str, str, List[LayerData]]):
             image_path, array_path, name, layers_data = data
             container: QLayout = self.ui.scrollAreaWidgetContentsDst.layout()
             ime = ClusterImageEntry(container.parent(), load_image(image_path), image_path, array_path, name,

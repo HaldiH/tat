@@ -4,7 +4,7 @@ from PySide6.QtCore import QSize
 import numpy as np
 import cv2 as cv
 
-from typing import Optional
+from typing import Optional, List
 
 
 def fit_to_frame(image: QPixmap, frame: QSize) -> QPixmap:
@@ -39,7 +39,7 @@ def array3d_to_pixmap(array: np.ndarray) -> QPixmap:
     return QPixmap.fromImage(QImage(array.data, width, height, color_bytes * width, QImage.Format_BGR888))
 
 
-def create_cluster(layers: list[np.ndarray], normalized=False) -> Optional[np.ndarray]:
+def create_cluster(layers: List[np.ndarray], normalized=False) -> Optional[np.ndarray]:
     cluster: Optional[np.ndarray] = None
     for index, layer in enumerate(layers):
         cluster = layer.copy() if cluster is None else cluster + layer * (index + 1)

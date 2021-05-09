@@ -1,4 +1,4 @@
-from typing import Optional, Callable, Any, Union
+from typing import Optional, Callable, Any, Union, List, Tuple
 
 import os
 
@@ -54,15 +54,15 @@ class ClusterEditor(PreviewWindow):
         # self.ui.unmergeButton.clicked.connect(self.unmerge)
         self.ui.undoButton.clicked.connect(self.undo)
 
-        self.__merge_callback: Optional[Callable[[list[int]], Any]] = None
+        self.__merge_callback: Optional[Callable[[List[int]], Any]] = None
         self.__unmerge_callback: Optional[Callable] = None
 
-        self._source_image_entries: list[LayerImageEntry] = []
+        self._source_image_entries: List[LayerImageEntry] = []
         self._selected_image_entry: Optional[LayerImageEntry] = None
         self.__cluster_image_entry: ClusterImageEntry = calling_image_entry
-        self.__pending_mergers: list[list[int]] = []
-        self.__pending_ime: list[LayerImageEntry] = []
-        self.__old_entries: list[list[LayerImageEntry]] = []
+        self.__pending_mergers: List[List[int]] = []
+        self.__pending_ime: List[LayerImageEntry] = []
+        self.__old_entries: List[List[LayerImageEntry]] = []
         self.__cluster_array: np.ndarray = np.load(self.__cluster_image_entry.array_path)
 
         side_length = self.height() - self.menuBar().height()
@@ -90,7 +90,7 @@ class ClusterEditor(PreviewWindow):
     def image_preview(self) -> QLabel:
         return self.ui.imageLabel
 
-    def register_merge_handler(self, hdl: Callable[[list[int]], Any]):
+    def register_merge_handler(self, hdl: Callable[[List[int]], Any]):
         self.__merge_callback = hdl
 
     def image_entry_click_handler(self, sender: LayerImageEntry, event: QMouseEvent) -> None:
@@ -112,7 +112,7 @@ class ClusterEditor(PreviewWindow):
         self.__cluster_preview_window.close()
         self.__cluster_preview_window = None
 
-    def __pending_add(self, mergers_idx: list[int], ime: LayerImageEntry, old_entries: list[LayerImageEntry]) -> None:
+    def __pending_add(self, mergers_idx: List[int], ime: LayerImageEntry, old_entries: List[LayerImageEntry]) -> None:
         if not self.ui.undoButton.isEnabled():
             self.ui.undoButton.setEnabled(True)
         self.__pending_mergers.append(mergers_idx)
@@ -128,17 +128,17 @@ class ClusterEditor(PreviewWindow):
     def __pending_count(self) -> int:
         return len(self.__pending_mergers)
 
-    def __pending_pop(self) -> tuple[list[int], LayerImageEntry, list[LayerImageEntry]]:
+    def __pending_pop(self) -> Tuple[List[int], LayerImageEntry, List[LayerImageEntry]]:
         if self.__pending_count() == 1:
             self.ui.undoButton.setEnabled(False)
         return self.__pending_mergers.pop(), self.__pending_ime.pop(), self.__old_entries.pop()
 
     @Slot()
     def merge(self):
-        checked_entries: list[int] = []
-        old_ime: list[LayerImageEntry] = []
+        checked_entries: List[int] = []
+        old_ime: List[LayerImageEntry] = []
         merger: Optional[np.ndarray] = None
-        parent_layers: list[int] = []
+        parent_layers: List[int] = []
         for index, ime in enumerate(self._source_image_entries):
             if not ime.isChecked():
                 continue

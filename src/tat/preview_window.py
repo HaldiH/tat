@@ -3,7 +3,7 @@ from PySide6.QtGui import QImage, QResizeEvent, QPixmap, QMouseEvent
 from PySide6.QtCore import QSize
 
 from abc import abstractmethod
-from typing import Optional
+from typing import Optional, List
 
 from .image_entry import ImageEntry
 from .checkable_image_entry import CheckableImageEntry
@@ -14,7 +14,7 @@ class PreviewWindow(QMainWindow):
     def __init__(self, parent: Optional[QWidget]):
         super(PreviewWindow, self).__init__(parent)
         self._selected_image_entry: Optional[ImageEntry] = None
-        self._source_image_entries: list[CheckableImageEntry] = []
+        self._source_image_entries: List[CheckableImageEntry] = []
 
     @abstractmethod
     def image_preview(self) -> QLabel:
@@ -73,7 +73,7 @@ class PreviewWindow(QMainWindow):
             ime.setChecked(not all_checked)
 
     def get_selected_entries(self):
-        selected: list[CheckableImageEntry] = []
+        selected: List[CheckableImageEntry] = []
         for ime in self._source_image_entries:
             if ime.isChecked():
                 selected.append(ime)
