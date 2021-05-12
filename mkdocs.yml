@@ -1,5 +1,7 @@
 site_name: Tomography Analysis Tool Documentation
 
+docs_dir: docs
+
 markdown_extensions:
   - admonition
   - pymdownx.details
