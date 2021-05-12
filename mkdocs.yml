@@ -1,0 +1,6 @@
+site_name: Tomography Analysis Tool Documentation
+
+markdown_extensions:
+  - admonition
+  - pymdownx.details
+  - pymdownx.superfences
