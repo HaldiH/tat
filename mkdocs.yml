@@ -6,3 +6,12 @@ markdown_extensions:
   - admonition
   - pymdownx.details
   - pymdownx.superfences
+
+nav:
+  - Home: "index.md"
+  - "User Guide":
+    - "Installation": "user-guide/installation.md"
+    - "Interface manual": "user-guide/manual.md"
+  - About:
+    - "License": "license.md"
+    - "Contributing": "contributing.md"

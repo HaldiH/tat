@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'mainwindow.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.0.2
+## Created by: Qt User Interface Compiler version 6.1.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -201,7 +201,7 @@ class Ui_MainWindow(object):
     # setupUi
 
     def retranslateUi(self, MainWindow):
-        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"MainWindow", None))
+        MainWindow.setWindowTitle(QCoreApplication.translate("MainWindow", u"TAT - Main window", None))
         self.buttonClearGenerated.setText(QCoreApplication.translate("MainWindow", u"Clear", None))
         self.labelClusterCount.setText(QCoreApplication.translate("MainWindow", u"Cluster Count", None))
         self.clusterCount.setSuffix("")

@@ -3,7 +3,7 @@
 ################################################################################
 ## Form generated from reading UI file 'progressbar.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.0.2
+## Created by: Qt User Interface Compiler version 6.0.4
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################
@@ -57,7 +57,7 @@ class Ui_ProgressBar(object):
     # setupUi
 
     def retranslateUi(self, ProgressBar):
-        ProgressBar.setWindowTitle(QCoreApplication.translate("ProgressBar", u"Form", None))
+        ProgressBar.setWindowTitle(QCoreApplication.translate("ProgressBar", u"Processing", None))
         self.label.setText(QCoreApplication.translate("ProgressBar", u"Please wait...", None))
         self.progressBar.setFormat(QCoreApplication.translate("ProgressBar", u"%v/%m", None))
         self.cancelButton.setText(QCoreApplication.translate("ProgressBar", u"Cancel", None))

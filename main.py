@@ -1,5 +1,9 @@
-from src import tat
+from src.tat import MainWindow
+from PySide6.QtWidgets import QApplication
 import sys
 
 if __name__ == '__main__':
-    sys.exit(tat.run())
+    app = QApplication()
+    app.main_window = MainWindow()
+    app.main_window.show()
+    sys.exit(app.exec())

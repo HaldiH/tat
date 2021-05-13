@@ -12,7 +12,7 @@ A tool for 2D tomographic images clustering using the k-means method.
 
 ## Install
 
-This application is available on [PyPi](https://pypi.org/project/tat/). You can install it using the `pip` tool.
+This application is available on [PyPI](https://pypi.org/project/tat/). You can install it using the `pip` tool.
 
 ```bash
 pip install tat
