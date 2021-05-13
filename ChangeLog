@@ -1,6 +1,8 @@
 CHANGES
 =======
 
+* Add desktop file for \*NIX platforms
+* Fixing dependencies versions
 * Project adapted for the use of pbr
 * Fixing doc generation
 * Add documentation build requirements
