@@ -1,6 +1,13 @@
-site_name: Tomography Analysis Tool Documentation
+site_name: Tomography Analysis Tool
+repo_url: https://gitlab.unige.ch/Hugo.Haldi/tat
+edit_uri: edit/master/docs
+site_description: The Tomography Analysis Tool (TAT) documentation.
+site_author: Hugo Haldi
+copyright: Copyright &copy; 2021 <a href="https://shinoyasx.github.io">Hugo Haldi</a>
 
 docs_dir: docs
+
+theme: readthedocs
 
 markdown_extensions:
   - admonition
@@ -14,4 +21,4 @@ nav:
     - "Interface manual": "user-guide/manual.md"
   - About:
     - "License": "license.md"
-    - "Contributing": "contributing.md"
+    - "Release Notes": "changelog.md"

@@ -34,12 +34,12 @@ git clone https://gitlab.unige.ch/Hugo.Haldi/tat.git tat
 cd tat/
 ```
 
-### Executing from sources
+### Installing from sources
 
-Once you download the sources, there will be an executable than you can run in the project root, called `main.py`. Run this file with Python to execute the application:
+Once you download the sources, there will be an executable than you can run in the project root, called `setup.py`. Run this file will install TAT in your current python environment:
 
 ```shell
-python main.py
+python setup.py install
 ```
 
 ## Executing the application
@@ -50,4 +50,24 @@ TAT is a module and has a startup script, so you can run it with the following c
 
 ```shell
 python -m tat
+```
+
+Or if the Python scripts are in your path:
+
+```shell
+tat
+```
+
+### Via a desktop environment
+
+#### Windows
+
+If you are on windows, an executable file should be available in the start menu, to find it simply type `tat` in the search bar. Click `tat.exe` to open the application.
+
+#### Linux
+
+If you are on Linux, there will be no default desktop executable. You can however download [this file](https://gitlab.unige.ch/Hugo.Haldi/tat/-/blob/master/data/ch.unige.tat.desktop) and put it into `~/.local/share/applications`, or with a one-liner bash command:
+
+```shell
+curl --create-dirs -O --output-dir ~/.local/share/applications/ https://gitlab.unige.ch/Hugo.Haldi/tat/-/raw/master/data/ch.unige.tat.desktop
 ```

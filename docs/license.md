@@ -1,8 +1,6 @@
-# Tomography Analysis Tool
+# Included projects
 
-A tool for 2D tomographic images clustering using the k-means method.
-
-## Dependencies
+All these projects are used by TAT:
 
 - [PySide6](https://pypi.org/project/PySide6/) - [API reference](https://doc.qt.io/qtforpython-6/modules.html)
 - [numpy](https://pypi.org/project/numpy/) - [API reference](https://numpy.org/doc/stable/reference/index.html)
@@ -10,20 +8,10 @@ A tool for 2D tomographic images clustering using the k-means method.
 - [scikit-image](https://pypi.org/project/scikit-image/) - [API reference](https://scikit-image.org/docs/stable/api/api.html)
 - [scikit-learn](https://pypi.org/project/scikit-learn/) - [API reference](https://scikit-learn.org/stable/modules/classes.html)
 
-## Install
+# Software license
 
-This application is available on [PyPI](https://pypi.org/project/tat/). You can install it using the `pip` tool.
+This software is released under the [Apache License 2.0](https://gitlab.unige.ch/Hugo.Haldi/tat/-/raw/master/LICENSE).
 
-```bash
-pip install tat
-```
+# Copyrights
 
-## Usage
-
-You can use the command line to run the application. An installer for windows will be released.
-
-e.g.
-
-```bash
-python -m tat
-```
+This software has been developped by Hugo Haldi with the collaboration of Tommaso Bagni and Diego Mauro for giving samples of tomography images and suggestions for application features and layout.
