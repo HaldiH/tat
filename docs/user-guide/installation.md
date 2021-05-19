@@ -1,8 +1,5 @@
 # Installation of TAT
 
-!!! note
-    An installer for Windows will be available in a future release.
-
 ## Via pip
 
 ### Requirements
@@ -11,7 +8,7 @@ During this section, we will assume that you have Python installed. If it is not
 
 ### Installation
 
-In a command prompt, write the following command to install the `tat` package add all its dependencies using the `pip` tool:
+In a command prompt, write the following command to install the `tat` package add all its dependencies using the `pip` tool :
 
 ```shell
 pip install tat
@@ -27,7 +24,7 @@ pip install tat
 
 ### Getting the sources
 
-As this project is open source, you can directly download the sources on the [Git repo](https://gitlab.unige.ch/Hugo.Haldi/tat). You can either download the sources as a zip on the website [gitlab.unige.ch/Hugo.Haldi/tat](https://gitlab.unige.ch/Hugo.Haldi/tat), or use [Git](https://git-scm.com):
+As this project is open source, you can directly download the sources on the [Git repo](https://gitlab.unige.ch/Hugo.Haldi/tat). You can either download the sources as a zip on the website [gitlab.unige.ch/Hugo.Haldi/tat](https://gitlab.unige.ch/Hugo.Haldi/tat), or use [Git](https://git-scm.com) :
 
 ```shell
 git clone https://gitlab.unige.ch/Hugo.Haldi/tat.git tat
@@ -36,7 +33,7 @@ cd tat/
 
 ### Installing from sources
 
-Once you download the sources, there will be an executable than you can run in the project root, called `setup.py`. Run this file will install TAT in your current python environment:
+Once you download the sources, there will be an executable than you can run in the project root, called `setup.py`. Run this file will install TAT in your current python environment :
 
 ```shell
 python setup.py install
@@ -46,13 +43,13 @@ python setup.py install
 
 ### Via the command line interface
 
-TAT is a module and has a startup script, so you can run it with the following command:
+TAT is a module and has a startup script, so you can run it with the following command :
 
 ```shell
 python -m tat
 ```
 
-Or if the Python scripts are in your path:
+Or if the Python scripts are in your path :
 
 ```shell
 tat
@@ -66,7 +63,7 @@ If you are on windows, an executable file should be available in the start menu,
 
 #### Linux
 
-If you are on Linux, there will be no default desktop executable. You can however download [this file](https://gitlab.unige.ch/Hugo.Haldi/tat/-/blob/master/data/ch.unige.tat.desktop) and put it into `~/.local/share/applications`, or with a one-liner bash command:
+If you are on Linux, there will be no default desktop executable. You can however download [this file](https://gitlab.unige.ch/Hugo.Haldi/tat/-/blob/master/data/ch.unige.tat.desktop) and put it into `~/.local/share/applications`, or with a one-liner bash command :
 
 ```shell
 curl --create-dirs -O --output-dir ~/.local/share/applications/ https://gitlab.unige.ch/Hugo.Haldi/tat/-/raw/master/data/ch.unige.tat.desktop

@@ -1,6 +1,9 @@
 CHANGES
 =======
 
+* Start working with workflows
+* Updated docs
+
 v0.0.7
 ------
 
