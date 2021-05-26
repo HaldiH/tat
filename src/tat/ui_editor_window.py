@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 
 ################################################################################
-## Form generated from reading UI file 'clustereditor.ui'
+## Form generated from reading UI file 'editor_window.ui'
 ##
-## Created by: Qt User Interface Compiler version 6.0.2
+## Created by: Qt User Interface Compiler version 6.1.0
 ##
 ## WARNING! All changes made in this file will be lost when recompiling UI file!
 ################################################################################

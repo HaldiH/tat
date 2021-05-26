@@ -38,24 +38,11 @@
    <property name="autoFillBackground">
     <bool>false</bool>
    </property>
-   <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0">
+   <layout class="QGridLayout" name="gridLayout" rowstretch="0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0">
     <property name="leftMargin">
      <number>9</number>
     </property>
-    <item row="3" column="6">
-     <widget class="QPushButton" name="buttonClearGenerated">
-      <property name="minimumSize">
-       <size>
-        <width>20</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="text">
-       <string>Clear</string>
-      </property>
-     </widget>
-    </item>
-    <item row="12" column="6">
+    <item row="19" column="6">
      <layout class="QFormLayout" name="formLayout">
       <property name="verticalSpacing">
        <number>6</number>
@@ -177,43 +164,10 @@
       </item>
      </layout>
     </item>
-    <item row="2" column="6">
-     <widget class="QScrollArea" name="scrollAreaDst">
+    <item row="14" column="6">
+     <widget class="QPushButton" name="buttonClearGenerated">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>150</width>
-        <height>0</height>
-       </size>
-      </property>
-      <property name="horizontalScrollBarPolicy">
-       <enum>Qt::ScrollBarAlwaysOff</enum>
-      </property>
-      <property name="widgetResizable">
-       <bool>true</bool>
-      </property>
-      <widget class="QWidget" name="scrollAreaWidgetContentsDst">
-       <property name="geometry">
-        <rect>
-         <x>0</x>
-         <y>0</y>
-         <width>180</width>
-         <height>451</height>
-        </rect>
-       </property>
-       <layout class="QVBoxLayout" name="verticalLayout"/>
-      </widget>
-     </widget>
-    </item>
-    <item row="12" column="0">
-     <widget class="QScrollArea" name="scrollAreaSrc">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Expanding" vsizetype="Minimum">
+       <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
@@ -221,6 +175,25 @@
       <property name="minimumSize">
        <size>
         <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Clear</string>
+      </property>
+     </widget>
+    </item>
+    <item row="18" column="0" rowspan="2">
+     <widget class="QScrollArea" name="scrollAreaSrc">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Expanding" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
         <height>0</height>
        </size>
       </property>
@@ -235,15 +208,60 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>592</width>
-         <height>125</height>
+         <width>622</width>
+         <height>142</height>
         </rect>
        </property>
        <layout class="QHBoxLayout" name="horizontalLayout"/>
       </widget>
      </widget>
     </item>
-    <item row="2" column="0" rowspan="4">
+    <item row="18" column="6">
+     <widget class="QPushButton" name="buttonOutputDir">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Load output directory</string>
+      </property>
+     </widget>
+    </item>
+    <item row="17" column="6">
+     <widget class="QPushButton" name="buttonInputDir">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Maximum">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="text">
+       <string>Load input directory</string>
+      </property>
+     </widget>
+    </item>
+    <item row="17" column="0">
+     <widget class="QPushButton" name="buttonCheckUncheck">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Minimum" vsizetype="Preferred">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>0</height>
+       </size>
+      </property>
+      <property name="text">
+       <string>Select/Deselect all</string>
+      </property>
+     </widget>
+    </item>
+    <item row="2" column="0" rowspan="13">
      <widget class="QFrame" name="imageFrame">
       <property name="sizePolicy">
        <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
@@ -300,37 +318,37 @@
       </layout>
      </widget>
     </item>
-    <item row="6" column="0">
-     <widget class="QPushButton" name="buttonCheckUncheck">
-      <property name="text">
-       <string>Select/Deselect all</string>
-      </property>
-     </widget>
-    </item>
-    <item row="6" column="6">
-     <widget class="QPushButton" name="buttonOutputDir">
+    <item row="2" column="6" rowspan="12">
+     <widget class="QScrollArea" name="scrollAreaDst">
       <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
+       <sizepolicy hsizetype="Minimum" vsizetype="Expanding">
         <horstretch>0</horstretch>
         <verstretch>0</verstretch>
        </sizepolicy>
       </property>
-      <property name="text">
-       <string>Load output directory</string>
+      <property name="minimumSize">
+       <size>
+        <width>150</width>
+        <height>0</height>
+       </size>
       </property>
-     </widget>
-    </item>
-    <item row="4" column="6" rowspan="2">
-     <widget class="QPushButton" name="buttonInputDir">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Minimum" vsizetype="Minimum">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
+      <property name="horizontalScrollBarPolicy">
+       <enum>Qt::ScrollBarAlwaysOff</enum>
       </property>
-      <property name="text">
-       <string>Load input directory</string>
+      <property name="widgetResizable">
+       <bool>true</bool>
       </property>
+      <widget class="QWidget" name="scrollAreaWidgetContentsDst">
+       <property name="geometry">
+        <rect>
+         <x>0</x>
+         <y>0</y>
+         <width>150</width>
+         <height>472</height>
+        </rect>
+       </property>
+       <layout class="QVBoxLayout" name="verticalLayout"/>
+      </widget>
      </widget>
     </item>
    </layout>

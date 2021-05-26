@@ -2,8 +2,8 @@ from typing import Optional, Final, List
 
 
 class LayerData:
-    def __init__(self, image_path: str, array_path: str, is_merger=False, parent_layers: Optional[List[int]] = None,
-                 layer_index: Optional[int] = None):
+    def __init__(self, image_path: str = None, array_path: str = None, is_merger=False,
+                 parent_layers: List[int] = None, layer_index: Optional[int] = None):
         self.image_path: Final[str] = image_path
         self.array_path: Final[str] = array_path
         self.is_merger: Final[bool] = is_merger

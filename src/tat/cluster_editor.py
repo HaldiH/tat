@@ -7,7 +7,7 @@ import numpy as np
 
 from PySide6.QtWidgets import QLayout, QLabel, QWidget, QGridLayout
 from PySide6.QtGui import QImage, QMouseEvent, QCloseEvent, QResizeEvent, QMoveEvent, QPixmap
-from PySide6.QtCore import Slot, QSize, QPoint, Qt, QEvent
+from PySide6.QtCore import Slot, QSize, QPoint, Qt
 
 from .ui_editor_window import Ui_EditorWindow
 from .preview_window import PreviewWindow
@@ -18,7 +18,7 @@ from .utils import load_image, array2d_to_pixmap, fit_to_frame, create_cluster
 
 
 class CLusterPreviewWindow(QWidget):
-    def __init__(self, parent: Optional[QWidget] = None, size: QSize = QSize(600, 600), image: Optional[QImage] = None):
+    def __init__(self, parent: Optional[QWidget] = None, size: QSize = QSize(600, 600), image: QImage = None):
         super(CLusterPreviewWindow, self).__init__(parent)
         self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
         self.resize(size)
@@ -30,17 +30,21 @@ class CLusterPreviewWindow(QWidget):
         layout.addWidget(self.imageLabel)
 
         if image is not None:
-            self.imageLabel.setPixmap(fit_to_frame(QPixmap.fromImage(image), QSize(self.width(), self.height())))
+            self.__update_cluster_preview(QPixmap.fromImage(image))
 
-    def update_cluster_preview(self, image: Union[np.ndarray, str]):
+    def __update_cluster_preview(self, image: QPixmap) -> None:
+        self.imageLabel.setPixmap(fit_to_frame(image, QSize(self.width(), self.height())))
+
+    def update_cluster_preview(self, image: Union[np.ndarray, str]) -> None:
         if isinstance(image, np.ndarray):
-            self.imageLabel.setPixmap(fit_to_frame(array2d_to_pixmap(image, normalize=True, colormap=cv.COLORMAP_JET),
-                                                   QSize(self.width(), self.height())))
+            self.__update_cluster_preview(array2d_to_pixmap(image, normalize=True, colormap=cv.COLORMAP_JET))
             return
 
         if isinstance(image, str):
-            self.imageLabel.setPixmap(
-                fit_to_frame(QPixmap.fromImage(QImage(image)), QSize(self.width(), self.height())))
+            self.__update_cluster_preview(QPixmap.fromImage(QImage(image)))
+            return
+
+        raise ValueError("Invalid image type")
 
 
 class ClusterEditor(PreviewWindow):
@@ -90,7 +94,7 @@ class ClusterEditor(PreviewWindow):
     def image_preview(self) -> QLabel:
         return self.ui.imageLabel
 
-    def register_merge_handler(self, hdl: Callable[[List[int]], Any]):
+    def register_merge_handler(self, hdl: Callable[[List[int]], Any]) -> None:
         self.__merge_callback = hdl
 
     def image_entry_click_handler(self, sender: LayerImageEntry, event: QMouseEvent) -> None:
@@ -134,7 +138,7 @@ class ClusterEditor(PreviewWindow):
         return self.__pending_mergers.pop(), self.__pending_ime.pop(), self.__old_entries.pop()
 
     @Slot()
-    def merge(self):
+    def merge(self) -> None:
         checked_entries: List[int] = []
         old_ime: List[LayerImageEntry] = []
         merger: Optional[np.ndarray] = None
@@ -175,14 +179,14 @@ class ClusterEditor(PreviewWindow):
         self.add_source_image_entry(merged_ime)
 
     @Slot()
-    def apply_to_all(self):
+    def apply_to_all(self) -> None:
         assert self.__merge_callback is not None, "The callback is not defined"
         for merger in self.__pending_mergers:
             self.__merge_callback(merger)
         self.__pending_clear()
 
     @Slot()
-    def reset(self):
+    def reset(self) -> None:
         if len(self.__pending_mergers) == 0:
             return
 
@@ -208,7 +212,7 @@ class ClusterEditor(PreviewWindow):
                 self.set_preview_image(load_image(layer_data.image_path), ime)
 
     @Slot()
-    def unmerge(self):
+    def unmerge(self) -> None:
         for index, ime in enumerate(self._source_image_entries):
             if not ime.isChecked() or not ime.layer_data.is_merger:
                 continue
@@ -228,7 +232,7 @@ class ClusterEditor(PreviewWindow):
             ime.close()
 
     @Slot()
-    def undo(self):
+    def undo(self) -> None:
         if self.__pending_count() == 0:
             return
 

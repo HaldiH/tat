@@ -72,7 +72,7 @@ class PreviewWindow(QMainWindow):
         for ime in self._source_image_entries:
             ime.setChecked(not all_checked)
 
-    def get_selected_entries(self):
+    def get_selected_entries(self) -> List[CheckableImageEntry]:
         selected: List[CheckableImageEntry] = []
         for ime in self._source_image_entries:
             if ime.isChecked():

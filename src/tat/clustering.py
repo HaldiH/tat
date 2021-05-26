@@ -3,22 +3,24 @@ from skimage import filters
 from sklearn.cluster import KMeans
 import time
 import mimetypes
+from typing import Optional, Tuple, List
 
 
 class Tat:
     @staticmethod
-    def guess_type(filename):
+    def guess_type(filename) -> Optional[str]:
         filetype = mimetypes.guess_type(filename)[0]
         if filetype is None:
             return None
         return filetype.split("/")[0]
 
     @staticmethod
-    def is_image(filename):
+    def is_image(filename) -> bool:
         return Tat.guess_type(filename) == "image"
 
     @staticmethod
-    def generate_layers(src_image: np.ndarray, cluster_count: int, run_count: int, max_iter_count: int):
+    def generate_layers(src_image: np.ndarray, cluster_count: int, run_count: int,
+                        max_iter_count: int) -> Tuple[List[np.ndarray], np.ndarray]:
         img_shape = src_image.shape
         start_time = time.time()
         k_means = KMeans(n_clusters=cluster_count, random_state=0, n_init=run_count, max_iter=max_iter_count).fit(
@@ -36,7 +38,7 @@ class Tat:
         monochrome_labeled_cluster = np.sort(100 ** powers_cluster * np.floor(labeled_cluster / 100 ** powers_cluster),
                                              axis=0)
 
-        layers = []
+        layers: List[np.ndarray] = []
         for i in range(len(monochrome_labeled_cluster)):
             layer = np.zeros(shape=np.shape(monochrome_labeled_segments)).astype(np.uint8)
             layer[monochrome_labeled_segments == monochrome_labeled_cluster[i]] = 1

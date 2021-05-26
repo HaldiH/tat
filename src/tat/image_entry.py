@@ -1,6 +1,7 @@
 from __future__ import annotations
 from typing import Callable, Final, Any, Optional, List
 from .utils import fit_to_frame
+from textwrap import wrap
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy
 from PySide6.QtGui import QImage, QPixmap, QColor, QMouseEvent
@@ -20,18 +21,16 @@ class ImageEntry(QWidget):
         self.array_path: Final[Optional[str]] = array_path
         self.basename: Final[str] = name
 
-        image_label = QLabel("Preview", self)
-        image_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
-        image_label.setAlignment(Qt.AlignCenter)
-        # qpix = QPixmap.fromImage(image)
-        # image_label.setPixmap(qpix.scaledToHeight(image_label.height()))
-        image_label.setPixmap(fit_to_frame(QPixmap.fromImage(image), QSize(50, 50)))
+        thumbnail = QLabel("Thumbnail", self)
+        thumbnail.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Expanding)
+        thumbnail.setAlignment(Qt.AlignCenter)
+        thumbnail.setPixmap(fit_to_frame(QPixmap.fromImage(image), QSize(50, 50)))
 
-        name_label = QLabel(name, self)
+        name_label = QLabel('\n'.join(wrap(name, 15)), self)
         name_label.setSizePolicy(QSizePolicy.Preferred, QSizePolicy.Minimum)
         name_label.setAlignment(Qt.AlignCenter)
 
-        self.__ime_layout.addWidget(image_label, alignment=Qt.AlignHCenter)
+        self.__ime_layout.addWidget(thumbnail, alignment=Qt.AlignHCenter)
         self.__ime_layout.addWidget(name_label, alignment=Qt.AlignHCenter)
 
         self.setLayout(self.__ime_layout)
@@ -51,15 +50,15 @@ class ImageEntry(QWidget):
     def isSelected(self) -> bool:
         return self.__selected
 
-    def __setBackgroundColor(self, color: QColor):
+    def __setBackgroundColor(self, color: QColor) -> None:
         pal = self.palette()
         pal.setColor(self.backgroundRole(), color)
         self.setPalette(pal)
 
-    def registerMousePressHandler(self, handler: Callable[[ImageEntry, QMouseEvent], Any]):
+    def registerMousePressHandler(self, handler: Callable[[ImageEntry, QMouseEvent], Any]) -> None:
         self.__mouse_pressed_handlers.append(handler)
 
-    def clearMousePressHandler(self):
+    def clearMousePressHandler(self) -> None:
         self.__mouse_pressed_handlers.clear()
 
     def mousePressEvent(self, event: QMouseEvent) -> None:

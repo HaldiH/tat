@@ -40,5 +40,5 @@ class ClusterImageEntry(ImageEntry):
     def remove_layer_data(self, index: int) -> LayerData:
         return self.layers_data.pop(index)
 
-    def register_mouse_double_click_action(self, action: Callable[[ClusterImageEntry], Any]):
+    def register_mouse_double_click_action(self, action: Callable[[ClusterImageEntry], Any]) -> None:
         self.__mouse_double_click_actions.append(action)

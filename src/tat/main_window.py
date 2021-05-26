@@ -5,7 +5,7 @@ from typing import Optional, List, Tuple
 import numpy as np
 import cv2 as cv
 
-from PySide6.QtWidgets import QFileDialog, QLabel, QLayout, QDialog
+from PySide6.QtWidgets import QFileDialog, QLabel, QLayout
 from PySide6.QtCore import QObject, Slot, Signal, QThreadPool, QRunnable
 
 from .clustering import Tat
@@ -14,8 +14,8 @@ from .preview_window import PreviewWindow
 from .cluster_image_entry import ClusterImageEntry
 from .cluster_editor import ClusterEditor
 from .layer_data import LayerData
+from .progress_bar import ProgressWindow
 from .ui_main_window import Ui_MainWindow
-from .ui_progress_bar import Ui_ProgressBar
 from .utils import load_image, apply_colormap, create_cluster, array3d_to_pixmap
 
 
@@ -99,13 +99,13 @@ class MainWindow(PreviewWindow):
     def image_preview(self) -> QLabel:
         return self.ui.imagePreview
 
-    def clear_image_entries(self):
+    def clear_image_entries(self) -> None:
         super(MainWindow, self).clear_image_entries()
         for ime in self.__generated_images_entries:
             ime.close()
         self.__generated_images_entries.clear()
 
-    def open_preview_window(self, calling_image_entry: ClusterImageEntry):
+    def open_preview_window(self, calling_image_entry: ClusterImageEntry) -> None:
         if self.editor_window is not None and self.editor_window.isVisible():
             self.editor_window.activateWindow()
             return
@@ -186,11 +186,12 @@ class MainWindow(PreviewWindow):
 
         self.__generated_images_entries = merged_cluster_ime
 
-    def unmerge_layer(self):
-        pass
+    # Need to be implemented if the unmerge feature is needed
+    def unmerge_layer(self) -> None:
+        raise NotImplementedError
 
     @Slot()
-    def clear_generated(self):
+    def clear_generated(self) -> None:
         for ime in self.__generated_images_entries:
             ime.close()
         self.__generated_images_entries.clear()
@@ -198,7 +199,7 @@ class MainWindow(PreviewWindow):
         self._selected_image_entry = None
 
     @Slot()
-    def load_input_directory(self):
+    def load_input_directory(self) -> None:
         in_dir = QFileDialog.getExistingDirectory(self)
         if len(in_dir) == 0:
             return
@@ -229,7 +230,7 @@ class MainWindow(PreviewWindow):
             self.ui.buttonGenerate.setEnabled(True)
 
     @Slot()
-    def load_output_directory(self):
+    def load_output_directory(self) -> None:
         out_dir = QFileDialog.getExistingDirectory(self)
         if len(out_dir) == 0:
             return
@@ -243,15 +244,13 @@ class MainWindow(PreviewWindow):
             self.ui.buttonGenerate.setEnabled(True)
 
     @Slot()
-    def generate_handler(self):
+    def generate_handler(self) -> None:
+        progress_window = ProgressWindow()
         self.ui.buttonGenerate.setEnabled(False)
-
-        progress_bar = QDialog(self)
-        progress_bar.ui = Ui_ProgressBar()
-        progress_bar.ui.setupUi(progress_bar)
+        self.setDisabled(True)
 
         @Slot()
-        def add_cluster_image(progress: int, data: Tuple[str, str, str, List[LayerData]]):
+        def add_cluster_image(progress: int, data: Tuple[str, str, str, List[LayerData]]) -> None:
             image_path, array_path, name, layers_data = data
             container: QLayout = self.ui.scrollAreaWidgetContentsDst.layout()
             ime = ClusterImageEntry(container.parent(), load_image(image_path), image_path, array_path, name,
@@ -261,7 +260,7 @@ class MainWindow(PreviewWindow):
             container.addWidget(ime)
             if len(self.__generated_images_entries) == 0:
                 self.set_preview_image(load_image(ime.image_path), ime)
-            progress_bar.ui.progressBar.setValue(progress)
+            progress_window.progress_bar().setValue(progress)
             self.__generated_images_entries.append(ime)
 
         selected_entries = self.get_selected_entries()
@@ -269,17 +268,18 @@ class MainWindow(PreviewWindow):
                                   self.ui.maxIterCount.value(), self.output_directory)
 
         @Slot()
-        def finished_generating():
-            progress_bar.close()
+        def finished_generating() -> None:
+            progress_window.close()
             worker.signals.progress.disconnect(add_cluster_image)
             worker.signals.finished.disconnect(finished_generating)
+            self.setEnabled(True)
             self.ui.buttonGenerate.setEnabled(True)
 
         worker.signals.progress.connect(add_cluster_image)
         worker.signals.finished.connect(finished_generating)
-        progress_bar.ui.cancelButton.clicked.connect(worker.interrupt)
+        progress_window.cancelled.connect(worker.interrupt)
 
-        progress_bar.ui.progressBar.setMaximum(len(selected_entries))
-        progress_bar.show()
+        progress_window.progress_bar().setMaximum(len(selected_entries))
+        progress_window.show()
 
         self.thread_pool.start(worker)

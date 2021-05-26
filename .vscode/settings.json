@@ -1,5 +1,5 @@
 {
-    "python.pythonPath": "pythonenv38/bin/python",
+    "python.pythonPath": "pythonenv/bin/python",
     "markdownlint.config": {
         "default": true,
         "MD007": false,
