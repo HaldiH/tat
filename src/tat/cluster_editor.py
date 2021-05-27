@@ -7,7 +7,7 @@ import numpy as np
 
 from PySide6.QtWidgets import QLayout, QLabel, QWidget, QGridLayout
 from PySide6.QtGui import QImage, QMouseEvent, QCloseEvent, QResizeEvent, QMoveEvent, QPixmap
-from PySide6.QtCore import Slot, QSize, QPoint, Qt
+from PySide6.QtCore import Slot, QSize, QPoint, Qt, Signal
 
 from .ui_editor_window import Ui_EditorWindow
 from .preview_window import PreviewWindow
@@ -18,7 +18,11 @@ from .utils import load_image, array2d_to_pixmap, fit_to_frame, create_cluster
 
 
 class CLusterPreviewWindow(QWidget):
-    def __init__(self, parent: Optional[QWidget] = None, size: QSize = QSize(600, 600), image: QImage = None):
+    """
+    Extends QWidget. Floating window next to ClusterEditor showing the current cluster state.
+    """
+
+    def __init__(self, parent: Optional[QWidget] = None, size: QSize = QSize(600, 600), image: Optional[QImage] = None):
         super(CLusterPreviewWindow, self).__init__(parent)
         self.setWindowFlags(Qt.Window | Qt.FramelessWindowHint)
         self.resize(size)
@@ -36,6 +40,11 @@ class CLusterPreviewWindow(QWidget):
         self.imageLabel.setPixmap(fit_to_frame(image, QSize(self.width(), self.height())))
 
     def update_cluster_preview(self, image: Union[np.ndarray, str]) -> None:
+        """
+        Load an image from a string or an array and update the cluster preview.
+
+        :param image: Can be both a numpy array and a string
+        """
         if isinstance(image, np.ndarray):
             self.__update_cluster_preview(array2d_to_pixmap(image, normalize=True, colormap=cv.COLORMAP_JET))
             return
@@ -48,6 +57,12 @@ class CLusterPreviewWindow(QWidget):
 
 
 class ClusterEditor(PreviewWindow):
+    """
+    Extends PreviewWindow. The window that allows editing of the clusters.
+    """
+
+    applied_to_all = Signal(list)
+
     def __init__(self, parent: Optional[QWidget], calling_image_entry: ClusterImageEntry):
         super(ClusterEditor, self).__init__(parent)
         self.ui = Ui_EditorWindow()
@@ -57,9 +72,6 @@ class ClusterEditor(PreviewWindow):
         self.ui.resetButton.clicked.connect(self.reset)
         # self.ui.unmergeButton.clicked.connect(self.unmerge)
         self.ui.undoButton.clicked.connect(self.undo)
-
-        self.__merge_callback: Optional[Callable[[List[int]], Any]] = None
-        self.__unmerge_callback: Optional[Callable] = None
 
         self._source_image_entries: List[LayerImageEntry] = []
         self._selected_image_entry: Optional[LayerImageEntry] = None
@@ -79,9 +91,9 @@ class ClusterEditor(PreviewWindow):
             layer_data = self.__cluster_image_entry.get_layer_data(i)
             array = np.load(layer_data.array_path)
             qim: QImage = load_image(layer_data.image_path)
-            ime = LayerImageEntry(self, qim, array, layer_data.get_name(), is_merger=layer_data.is_merger,
+            ime = LayerImageEntry(self, qim, array, layer_data.name(), is_merger=layer_data.is_merger,
                                   layer_index=layer_data.layer_index, parent_layers=layer_data.parent_layers)
-            ime.registerMousePressHandler(self.image_entry_click_handler)
+            ime.mouse_pressed.connect(self.image_entry_click_handler)
             self.add_source_image_entry(ime)
 
             # if first:
@@ -94,9 +106,7 @@ class ClusterEditor(PreviewWindow):
     def image_preview(self) -> QLabel:
         return self.ui.imageLabel
 
-    def register_merge_handler(self, hdl: Callable[[List[int]], Any]) -> None:
-        self.__merge_callback = hdl
-
+    @Slot(LayerImageEntry, QMouseEvent)
     def image_entry_click_handler(self, sender: LayerImageEntry, event: QMouseEvent) -> None:
         assert type(sender) == LayerImageEntry
         self.set_preview_image(array2d_to_pixmap(sender.array, normalize=True).toImage(), sender)
@@ -117,6 +127,15 @@ class ClusterEditor(PreviewWindow):
         self.__cluster_preview_window = None
 
     def __pending_add(self, mergers_idx: List[int], ime: LayerImageEntry, old_entries: List[LayerImageEntry]) -> None:
+        """
+        Add the result of a merge to the pending list, and store the merged layers to be able to undo the merge.
+
+        :param mergers_idx: Indices of the layers to merge
+        :type mergers_idx: list of int
+        :param LayerImageEntry ime: The newly merged image entry
+        :param old_entries: A list of the layers used to generate the merged layer
+        :type old_entries: list of LayerImageEntry
+        """
         if not self.ui.undoButton.isEnabled():
             self.ui.undoButton.setEnabled(True)
         self.__pending_mergers.append(mergers_idx)
@@ -124,21 +143,35 @@ class ClusterEditor(PreviewWindow):
         self.__old_entries.append(old_entries)
 
     def __pending_clear(self) -> None:
+        """
+        Deletes the mergers that haven't been applied yet.
+        """
         self.ui.undoButton.setEnabled(False)
         self.__pending_mergers.clear()
         self.__pending_ime.clear()
         self.__old_entries.clear()
 
     def __pending_count(self) -> int:
-        return len(self.__pending_mergers)
+        n = len(self.__pending_mergers)
+        assert n == len(self.__pending_ime) == len(self.__old_entries)
+        return n
 
     def __pending_pop(self) -> Tuple[List[int], LayerImageEntry, List[LayerImageEntry]]:
+        """
+        Gives a tuple of the last merged indices, image entry of the merged layers and the list of image entries
+        used to generate the merger.
+
+        :rtype: (list of int, LayerImageEntry, list of LayerImageEntry)
+        """
         if self.__pending_count() == 1:
             self.ui.undoButton.setEnabled(False)
         return self.__pending_mergers.pop(), self.__pending_ime.pop(), self.__old_entries.pop()
 
     @Slot()
     def merge(self) -> None:
+        """
+        Merge the selected layers only in the current view. Update the cluster preview with the newly merged cluster.
+        """
         checked_entries: List[int] = []
         old_ime: List[LayerImageEntry] = []
         merger: Optional[np.ndarray] = None
@@ -173,20 +206,25 @@ class ClusterEditor(PreviewWindow):
         qim: QImage = array2d_to_pixmap(merger, normalize=True).toImage()
         merged_ime = LayerImageEntry(self, qim, merger, f"m {LayerData.indices2str(parent_layers)}",
                                      is_merger=True, parent_layers=parent_layers)
-        merged_ime.registerMousePressHandler(self.image_entry_click_handler)
+        merged_ime.mouse_pressed.connect(self.image_entry_click_handler)
         self.__pending_add(checked_entries, merged_ime, old_ime)
         self.set_preview_image(qim, merged_ime)
         self.add_source_image_entry(merged_ime)
 
     @Slot()
     def apply_to_all(self) -> None:
-        assert self.__merge_callback is not None, "The callback is not defined"
+        """
+        Send a merge signal for each pending merge.
+        """
         for merger in self.__pending_mergers:
-            self.__merge_callback(merger)
+            self.applied_to_all.emit(merger)
         self.__pending_clear()
 
     @Slot()
     def reset(self) -> None:
+        """
+        Removes all uncommitted changes done in the editor.
+        """
         if len(self.__pending_mergers) == 0:
             return
 
@@ -204,15 +242,18 @@ class ClusterEditor(PreviewWindow):
             layer_data = self.__cluster_image_entry.get_layer_data(i)
             array = np.load(layer_data.array_path)
             qim: QImage = load_image(layer_data.image_path)
-            ime = LayerImageEntry(self, qim, array, layer_data.get_name(), layer_data.is_merger, layer_data.layer_index,
+            ime = LayerImageEntry(self, qim, array, layer_data.name(), layer_data.is_merger, layer_data.layer_index,
                                   layer_data.parent_layers)
-            ime.registerMousePressHandler(self.image_entry_click_handler)
+            ime.mouse_pressed.connect(self.image_entry_click_handler)
             self.add_source_image_entry(ime)
             if i == 0:
                 self.set_preview_image(load_image(layer_data.image_path), ime)
 
     @Slot()
     def unmerge(self) -> None:
+        """
+        Unmerge the selected layers in the editor. Global behavior not implemented.
+        """
         for index, ime in enumerate(self._source_image_entries):
             if not ime.isChecked() or not ime.layer_data.is_merger:
                 continue
@@ -227,12 +268,15 @@ class ClusterEditor(PreviewWindow):
                 array_path = f"{path_no_ext}.npy"
                 parent_ime = LayerImageEntry(self, load_image(image_path), np.load(array_path), str(parent_layer_index),
                                              layer_index=parent_layer_index)
-                parent_ime.registerMousePressHandler(self.image_entry_click_handler)
+                parent_ime.mouse_pressed.connect(self.image_entry_click_handler)
                 self.add_source_image_entry(parent_ime)
             ime.close()
 
     @Slot()
     def undo(self) -> None:
+        """
+        Go one step back.
+        """
         if self.__pending_count() == 0:
             return
 

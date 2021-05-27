@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QDialog, QWidget, QProgressBar
 from PySide6.QtGui import QCloseEvent
-from PySide6.QtCore import Signal, Slot
+from PySide6.QtCore import Signal
 
 from typing import Optional
 
@@ -15,7 +15,6 @@ class ProgressWindow(QDialog):
         self.__ui = Ui_ProgressBar()
         self.__ui.setupUi(self)
         self.__ui.cancelButton.clicked.connect(self.cancelled)
-        self.__ui.cancelButton.clicked.connect(lambda: self.close())
 
     def closeEvent(self, event: QCloseEvent) -> None:
         self.cancelled.emit()

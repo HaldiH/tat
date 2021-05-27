@@ -14,7 +14,7 @@ from .preview_window import PreviewWindow
 from .cluster_image_entry import ClusterImageEntry
 from .cluster_editor import ClusterEditor
 from .layer_data import LayerData
-from .progress_bar import ProgressWindow
+from .progress_window import ProgressWindow
 from .ui_main_window import Ui_MainWindow
 from .utils import load_image, apply_colormap, create_cluster, array3d_to_pixmap
 
@@ -25,6 +25,10 @@ class ClusteringSignals(QObject):
 
 
 class ClusteringWorker(QRunnable):
+    """
+    Runner that will be ran while the progress bar is showing.
+    """
+
     signals = ClusteringSignals()
     is_running = False
 
@@ -39,6 +43,9 @@ class ClusteringWorker(QRunnable):
 
     @Slot()
     def run(self) -> None:
+        """
+        Performs the clustering computing.
+        """
         self.is_running = True
         for index, ime in enumerate(self.entries):
             if not self.is_running:
@@ -74,6 +81,10 @@ class ClusteringWorker(QRunnable):
 
 
 class MainWindow(PreviewWindow):
+    """
+    Extends PreviewWindow. The first window that is launched when the program starts.
+    """
+
     def __init__(self):
         super(MainWindow, self).__init__(None)
         self.ui = Ui_MainWindow()
@@ -105,19 +116,27 @@ class MainWindow(PreviewWindow):
             ime.close()
         self.__generated_images_entries.clear()
 
-    def open_preview_window(self, calling_image_entry: ClusterImageEntry) -> None:
+    @Slot(ClusterImageEntry)
+    def open_cluster_editor(self, calling_image_entry: ClusterImageEntry) -> None:
+        """
+        Open a cluster editor with the given ClusteringImageEntry.
+
+        :param ClusterImageEntry calling_image_entry: The cluster image entry which contains all layers information.
+        """
         if self.editor_window is not None and self.editor_window.isVisible():
             self.editor_window.activateWindow()
             return
         self.editor_window = ClusterEditor(self, calling_image_entry)
-        self.editor_window.register_merge_handler(self.merge_layers)
+        self.editor_window.applied_to_all.connect(self.merge_layers)
         self.editor_window.show()
 
+    @Slot(list)
     def merge_layers(self, layers_indices: List[int]) -> None:
         """
         Merge all the specified layers
+
         :param layers_indices: A range of the layers to merge
-        :return: None
+        :type layers_indices: list of int
         """
         if len(layers_indices) == 0:
             return
@@ -172,10 +191,10 @@ class MainWindow(PreviewWindow):
             np.save(new_cluster_array_path, new_cluster_array)
             cv.imwrite(new_cluster_image_path, new_cluster_colored)
 
-            new_ime = ClusterImageEntry(ime.parent(), new_cluster_colored_image, new_cluster_image_path,
-                                        new_cluster_array_path, ime.basename, ime.layers_data)
-            new_ime.registerMousePressHandler(self.image_entry_click_handler)
-            new_ime.register_mouse_double_click_action(self.open_preview_window)
+            new_ime = ClusterImageEntry(ime.parent(), new_cluster_colored_image, ime.basename, new_cluster_image_path,
+                                        new_cluster_array_path, ime.layers_data)
+            new_ime.mouse_pressed.connect(self.image_entry_click_handler)
+            new_ime.double_clicked.connect(self.open_cluster_editor)
             merged_cluster_ime.append(new_ime)
             ime.close()
             self.ui.scrollAreaWidgetContentsDst.layout().addWidget(new_ime)
@@ -186,12 +205,15 @@ class MainWindow(PreviewWindow):
 
         self.__generated_images_entries = merged_cluster_ime
 
-    # Need to be implemented if the unmerge feature is needed
+    # Need to be implemented if the unmerge feature is needed__mouse_pressed_handlers.clear()
     def unmerge_layer(self) -> None:
         raise NotImplementedError
 
     @Slot()
     def clear_generated(self) -> None:
+        """
+        Clear the generated cluster area.
+        """
         for ime in self.__generated_images_entries:
             ime.close()
         self.__generated_images_entries.clear()
@@ -200,6 +222,9 @@ class MainWindow(PreviewWindow):
 
     @Slot()
     def load_input_directory(self) -> None:
+        """
+        Open a popup to select the directory where is located source images.
+        """
         in_dir = QFileDialog.getExistingDirectory(self)
         if len(in_dir) == 0:
             return
@@ -219,7 +244,7 @@ class MainWindow(PreviewWindow):
             qim = load_image(entry.path)
 
             ime = CheckableImageEntry(src_layout.parent(), qim, entry.name, entry.path)
-            ime.registerMousePressHandler(self.image_entry_click_handler)
+            ime.mouse_pressed.connect(self.image_entry_click_handler)
             self.add_source_image_entry(ime)
 
             if first:
@@ -231,6 +256,9 @@ class MainWindow(PreviewWindow):
 
     @Slot()
     def load_output_directory(self) -> None:
+        """
+        Open a popup to select the directory where to generate the clusters and layers.
+        """
         out_dir = QFileDialog.getExistingDirectory(self)
         if len(out_dir) == 0:
             return
@@ -245,18 +273,21 @@ class MainWindow(PreviewWindow):
 
     @Slot()
     def generate_handler(self) -> None:
+        """
+        When the generate button is clicked, starts the clustering in background and shows the progress bar.
+        """
         progress_window = ProgressWindow()
         self.ui.buttonGenerate.setEnabled(False)
         self.setDisabled(True)
 
-        @Slot()
+        @Slot(int, tuple)
         def add_cluster_image(progress: int, data: Tuple[str, str, str, List[LayerData]]) -> None:
             image_path, array_path, name, layers_data = data
             container: QLayout = self.ui.scrollAreaWidgetContentsDst.layout()
-            ime = ClusterImageEntry(container.parent(), load_image(image_path), image_path, array_path, name,
+            ime = ClusterImageEntry(container.parent(), load_image(image_path), name, image_path, array_path,
                                     layers_data)
-            ime.registerMousePressHandler(self.image_entry_click_handler)
-            ime.register_mouse_double_click_action(self.open_preview_window)
+            ime.mouse_pressed.connect(self.image_entry_click_handler)
+            ime.double_clicked.connect(self.open_cluster_editor)
             container.addWidget(ime)
             if len(self.__generated_images_entries) == 0:
                 self.set_preview_image(load_image(ime.image_path), ime)
