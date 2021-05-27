@@ -37,3 +37,23 @@ tat
 ```
 
 And if you are using Windows, you can start the executable file created in the start menu under the name of `tat`.
+
+```{toctree}
+:caption: User Guide
+:hidden:
+Installation <user-guide/installation>
+Interface manual <user-guide/manual>
+```
+
+```{toctree}
+:caption: Developper Guide
+:hidden:
+References <dev-guide/references>
+```
+
+```{toctree}
+:caption: About
+:hidden:
+license
+Release Notes <changelog>
+```

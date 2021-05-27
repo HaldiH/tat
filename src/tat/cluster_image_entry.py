@@ -22,11 +22,11 @@ class ClusterImageEntry(ImageEntry):
         """
         Instantiate a ClusterImageEntry object.
 
-        :param parent: The widget calling the method
-        :param image: The image that will be used to draw the preview thumbnail
-        :param image_path: The path of the cluster image
-        :param name: The name that will be showed below the thumbnail
-        :param layers_data: A list of LayerData containing all the information about a layer
+        :param parent: The widget calling the method.
+        :param image: The image that will be used to draw the preview thumbnail.
+        :param image_path: The path of the cluster image.
+        :param name: The name that will be showed below the thumbnail.
+        :param layers_data: A list of LayerData containing all the information about a layer.
         """
         super(ClusterImageEntry, self).__init__(parent, image, name, image_path, array_path)
         self.layers_data: Final[List[LayerData]] = layers_data

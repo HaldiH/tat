@@ -13,10 +13,10 @@ class LayerData:
 
         :type image_path: str, optional
         :type array_path: str, optional
-        :param bool is_merger: Tells if the layer a merger of multiple layers or not
-        :param layer_index: Index of the layer if it is not a merger
+        :param bool is_merger: Tells if the layer a merger of multiple layers or not.
+        :param layer_index: Index of the layer if it is not a merger.
         :type layer_index: int, optional
-        :param parent_layers: List of the parent layers if the layer is a merger
+        :param parent_layers: List of the parent layers if the layer is a merger.
         :type parent_layers: list of int, optional
         """
         if is_merger:

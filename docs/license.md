@@ -1,4 +1,6 @@
-# Included projects
+# License
+
+## Included projects
 
 All these projects are used by TAT:
 
@@ -8,10 +10,10 @@ All these projects are used by TAT:
 - [scikit-image](https://pypi.org/project/scikit-image/) - [API reference](https://scikit-image.org/docs/stable/api/api.html)
 - [scikit-learn](https://pypi.org/project/scikit-learn/) - [API reference](https://scikit-learn.org/stable/modules/classes.html)
 
-# Software license
+## Software license
 
 This software is released under the [Apache License 2.0](https://gitlab.unige.ch/Hugo.Haldi/tat/-/raw/master/LICENSE).
 
-# Copyrights
+## Copyrights
 
 This software has been developped by Hugo Haldi with the collaboration of Tommaso Bagni and Diego Mauro for giving samples of tomography images and suggestions for application features and layout.

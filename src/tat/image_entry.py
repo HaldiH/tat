@@ -20,12 +20,12 @@ class ImageEntry(QWidget):
         """
         Create an ImageEntry
 
-        :param QWidget parent: The parent containing the ImageEntry
-        :param QImage image: The image that will be draw in the thumbnail
-        :param str name: The name that will be shown below the thumbnail. Also used for image basename
-        :param image_path: Path to the image file
+        :param QWidget parent: The parent containing the ImageEntry.
+        :param QImage image: The image that will be draw in the thumbnail.
+        :param str name: The name that will be shown below the thumbnail. Also used for image basename.
+        :param image_path: Path to the image file.
         :type image_path: str, optional
-        :param array_path: Path to the Numpy array file
+        :param array_path: Path to the Numpy array file.
         :type array_path: str, optional
         """
         super(ImageEntry, self).__init__(parent)
@@ -55,7 +55,7 @@ class ImageEntry(QWidget):
         """
         Set the ImageEntry background to gray if selected is True, else set to the original color.
 
-        :param bool selected: Path to the image file
+        :param bool selected: Path to the image file.
         """
         if selected:
             self.__setBackgroundColor(Qt.gray)
@@ -67,7 +67,7 @@ class ImageEntry(QWidget):
 
     def isSelected(self) -> bool:
         """
-        :return: True if ImageEntry is currently selected
+        :return: True if ImageEntry is currently selected.
         :rtype: bool
         """
         return self.__selected

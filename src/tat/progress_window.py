@@ -8,6 +8,10 @@ from .ui_progress_bar import Ui_ProgressBar
 
 
 class ProgressWindow(QDialog):
+    """
+    Extends QDialog. Create a window with a progress bar and a cancel button.
+    """
+
     cancelled = Signal()
 
     def __init__(self, parent: Optional[QWidget] = None):

@@ -12,7 +12,7 @@ from .utils import load_image, fit_to_frame
 
 class PreviewWindow(QMainWindow):
     """
-    Extends QMainWindow. An interface to easily create a window class containing a preview area and a source images
+    Extends QMainWindow. An interface to easily create a window class containing a preview area and a source image
     entries area.
     """
 
@@ -44,8 +44,8 @@ class PreviewWindow(QMainWindow):
         Add an image entry in the source area and `_source_image_entries`.
 
         :type ime: CheckableImageEntry
-        :param index: if set, insert the image entry in `_source_image_entries` at the given index, otherwise append
-        at the end.
+        :param index: if set, insert the image entry in `_source_image_entries` at the given index, otherwise \
+        append at the end.
         :type index: int, optional
         """
         self._source_image_entries.append(ime) if index is None else self._source_image_entries.insert(index, ime)
@@ -96,7 +96,7 @@ class PreviewWindow(QMainWindow):
 
     def clear_image_entries(self) -> None:
         """
-        Remove all the image entries in the source area. Clear `_source_image_entries`
+        Remove all the image entries in the source area. Clear `_source_image_entries`.
         """
         for ime in self._source_image_entries:
             ime.close()

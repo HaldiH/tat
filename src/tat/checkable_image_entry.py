@@ -16,14 +16,14 @@ class CheckableImageEntry(ImageEntry):
         """
         Initialize a CheckableImageEntry
 
-        :param QWidget parent: The parent containing the ImageEntry
-        :param QImage image: The image that will be draw in the thumbnail
-        :param str name: The name that will be shown below the thumbnail. Also used for image basename
-        :param image_path: Path to the image file
+        :param QWidget parent: The parent containing the ImageEntry.
+        :param QImage image: The image that will be draw in the thumbnail.
+        :param str name: The name that will be shown below the thumbnail. Also used for image basename.
+        :param image_path: Path to the image file.
         :type image_path: str, optional
-        :param array_path: Path to the Numpy array file
+        :param array_path: Path to the Numpy array file.
         :type array_path: str, optional
-        :param bool default_check: If True, the checkbox will be checked
+        :param bool default_check: If True, the checkbox will be checked.
         """
         super(CheckableImageEntry, self).__init__(parent, image, name, image_path, array_path)
 
@@ -36,7 +36,7 @@ class CheckableImageEntry(ImageEntry):
 
     def isChecked(self) -> bool:
         """
-        :return: `True` if checkbox is checked, `False` otherwise
+        :return: `True` if checkbox is checked, `False` otherwise.
         :rtype: bool
         """
         return self.__check_box.isChecked()
@@ -44,6 +44,6 @@ class CheckableImageEntry(ImageEntry):
     def setChecked(self, checked) -> None:
         """
         Changes the entry checkbox state
-        :param checked: If `True`, set the checkbox to checked, otherwise set to unchecked
+        :param checked: If `True`, set the checkbox to checked, otherwise set to unchecked.
         """
         self.__check_box.setChecked(checked)

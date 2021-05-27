@@ -14,11 +14,12 @@ In a command prompt, write the following command to install the `tat` package ad
 pip install tat
 ```
 
-!!! note
-    If you are using windows, it may happends that `pip` is not in your path. So you will need to add `python -m pip` to install the package, e.g.
+:::{note}
+If you are using windows, it may happends that `pip` is not in your path. So you will need to add `python -m pip` to install the package, e.g.
     ```shell
     python -m pip install tat
     ```
+:::
 
 ## Via sources
 

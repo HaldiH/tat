@@ -1,6 +1,14 @@
 CHANGES
 =======
 
+* Using signals instead of list of callbacks. Added docstrings for almost all methods
+* Add return type for all functions
+
+v0.0.8
+------
+
+* Add docs build dependency
+* Update docs
 * Start working with workflows
 * Updated docs
 

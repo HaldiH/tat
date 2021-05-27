@@ -10,8 +10,9 @@ If you want to start the application with a command prompt, you need to execute 
 python -m tat
 ```
 
-!!! note
+:::{note}
     If your python scripts directory is in your path, you can simply write `tat`.
+:::
 
 ## Main window
 

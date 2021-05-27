@@ -1,4 +1,4 @@
-from typing import Optional, Callable, Any, Union, List, Tuple
+from typing import Optional, Union, List, Tuple
 
 import os
 
@@ -43,7 +43,7 @@ class CLusterPreviewWindow(QWidget):
         """
         Load an image from a string or an array and update the cluster preview.
 
-        :param image: Can be both a numpy array and a string
+        :param image: Can be both a numpy array and a string.
         """
         if isinstance(image, np.ndarray):
             self.__update_cluster_preview(array2d_to_pixmap(image, normalize=True, colormap=cv.COLORMAP_JET))
@@ -130,10 +130,10 @@ class ClusterEditor(PreviewWindow):
         """
         Add the result of a merge to the pending list, and store the merged layers to be able to undo the merge.
 
-        :param mergers_idx: Indices of the layers to merge
+        :param mergers_idx: Indices of the layers to merge.
         :type mergers_idx: list of int
-        :param LayerImageEntry ime: The newly merged image entry
-        :param old_entries: A list of the layers used to generate the merged layer
+        :param LayerImageEntry ime: The newly merged image entry.
+        :param old_entries: A list of the layers used to generate the merged layer.
         :type old_entries: list of LayerImageEntry
         """
         if not self.ui.undoButton.isEnabled():
