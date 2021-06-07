@@ -305,3 +305,4 @@ class ClusterEditor(PreviewWindow):
             self.add_source_image_entry(ime, index)
         self.image_preview().setText("Layer")
         self.__cluster_preview_window.update_cluster_preview(self.__cluster_image_entry.image_path)
+        self.change_all_entries_check_state(False)

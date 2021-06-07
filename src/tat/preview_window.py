@@ -126,3 +126,12 @@ class PreviewWindow(QMainWindow):
             if ime.isChecked():
                 selected.append(ime)
         return selected
+
+    def change_all_entries_check_state(self, checked: bool) -> None:
+        """
+        Set all image entries to the given check state.
+
+        :param bool checked: Change all to this state.
+        """
+        for ime in self.get_selected_entries():
+            ime.setChecked(checked)
