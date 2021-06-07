@@ -68,10 +68,13 @@ class ClusterEditor(PreviewWindow):
         self.ui = Ui_EditorWindow()
         self.ui.setupUi(self)
         self.ui.mergeButton.clicked.connect(self.merge)
+        self.ui.mergeButton.clicked.connect(self.change_merge_button_state)
         self.ui.applyButton.clicked.connect(self.apply_to_all)
         self.ui.resetButton.clicked.connect(self.reset)
+        self.ui.resetButton.clicked.connect(self.change_merge_button_state)
         # self.ui.unmergeButton.clicked.connect(self.unmerge)
         self.ui.undoButton.clicked.connect(self.undo)
+        self.ui.undoButton.clicked.connect(self.change_merge_button_state)
 
         self._source_image_entries: List[LayerImageEntry] = []
         self._selected_image_entry: Optional[LayerImageEntry] = None
@@ -94,6 +97,7 @@ class ClusterEditor(PreviewWindow):
             ime = LayerImageEntry(self, qim, array, layer_data.name(), is_merger=layer_data.is_merger,
                                   layer_index=layer_data.layer_index, parent_layers=layer_data.parent_layers)
             ime.mouse_pressed.connect(self.image_entry_click_handler)
+            ime.state_changed.connect(self.change_merge_button_state)
             self.add_source_image_entry(ime)
 
             # if first:
@@ -167,6 +171,14 @@ class ClusterEditor(PreviewWindow):
             self.ui.undoButton.setEnabled(False)
         return self.__pending_mergers.pop(), self.__pending_ime.pop(), self.__old_entries.pop()
 
+    @Slot(int)
+    def change_merge_button_state(self, state: int) -> None:
+        if not state == Qt.CheckState.Checked:
+            self.ui.mergeButton.setEnabled(True)
+            return
+        if len(self.get_selected_entries()) == len(self._source_image_entries):
+            self.ui.mergeButton.setEnabled(False)
+
     @Slot()
     def merge(self) -> None:
         """
@@ -207,6 +219,7 @@ class ClusterEditor(PreviewWindow):
         merged_ime = LayerImageEntry(self, qim, merger, f"m {LayerData.indices2str(parent_layers)}",
                                      is_merger=True, parent_layers=parent_layers)
         merged_ime.mouse_pressed.connect(self.image_entry_click_handler)
+        merged_ime.state_changed.connect(self.change_merge_button_state)
         self.__pending_add(checked_entries, merged_ime, old_ime)
         self.set_preview_image(qim, merged_ime)
         self.add_source_image_entry(merged_ime)
@@ -245,6 +258,7 @@ class ClusterEditor(PreviewWindow):
             ime = LayerImageEntry(self, qim, array, layer_data.name(), layer_data.is_merger, layer_data.layer_index,
                                   layer_data.parent_layers)
             ime.mouse_pressed.connect(self.image_entry_click_handler)
+            ime.state_changed.connect(self.change_merge_button_state)
             self.add_source_image_entry(ime)
             if i == 0:
                 self.set_preview_image(load_image(layer_data.image_path), ime)
@@ -269,6 +283,7 @@ class ClusterEditor(PreviewWindow):
                 parent_ime = LayerImageEntry(self, load_image(image_path), np.load(array_path), str(parent_layer_index),
                                              layer_index=parent_layer_index)
                 parent_ime.mouse_pressed.connect(self.image_entry_click_handler)
+                parent_ime.state_changed.connect(self.change_merge_button_state)
                 self.add_source_image_entry(parent_ime)
             ime.close()
 

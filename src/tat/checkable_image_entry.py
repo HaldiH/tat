@@ -1,6 +1,6 @@
 from PySide6.QtWidgets import QWidget, QCheckBox, QSizePolicy
 from PySide6.QtGui import QImage
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, Signal
 
 from .image_entry import ImageEntry
 from typing import Optional
@@ -10,6 +10,8 @@ class CheckableImageEntry(ImageEntry):
     """
     Extends ImageEntry. An ImageEntry with a checkbox under the thumbnail.
     """
+
+    state_changed = Signal(int)
 
     def __init__(self, parent: QWidget, image: QImage, name: str, image_path: Optional[str] = None,
                  array_path: Optional[str] = None, default_check: bool = True):
@@ -31,6 +33,7 @@ class CheckableImageEntry(ImageEntry):
         self.__check_box.setSizePolicy(
             QSizePolicy.Preferred, QSizePolicy.Minimum)
         self.__check_box.setChecked(default_check)
+        self.__check_box.stateChanged.connect(self.state_changed)
 
         self.layout().insertWidget(1, self.__check_box, alignment=Qt.AlignHCenter)
 
