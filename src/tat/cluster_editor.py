@@ -53,7 +53,7 @@ class CLusterPreviewWindow(QWidget):
             self.__update_cluster_preview(QPixmap.fromImage(QImage(image)))
             return
 
-        raise ValueError("Invalid image type")
+        raise ValueError("Invalid image type: {}".format(type(image)))
 
 
 class ClusterEditor(PreviewWindow):
@@ -68,13 +68,10 @@ class ClusterEditor(PreviewWindow):
         self.ui = Ui_EditorWindow()
         self.ui.setupUi(self)
         self.ui.mergeButton.clicked.connect(self.merge)
-        self.ui.mergeButton.clicked.connect(self.change_merge_button_state)
         self.ui.applyButton.clicked.connect(self.apply_to_all)
         self.ui.resetButton.clicked.connect(self.reset)
-        self.ui.resetButton.clicked.connect(self.change_merge_button_state)
         # self.ui.unmergeButton.clicked.connect(self.unmerge)
         self.ui.undoButton.clicked.connect(self.undo)
-        self.ui.undoButton.clicked.connect(self.change_merge_button_state)
 
         self._source_image_entries: List[LayerImageEntry] = []
         self._selected_image_entry: Optional[LayerImageEntry] = None
@@ -184,7 +181,9 @@ class ClusterEditor(PreviewWindow):
         """
         Merge the selected layers only in the current view. Update the cluster preview with the newly merged cluster.
         """
-        checked_entries: List[int] = []
+        if len(self.get_selected_entries()) < 2:
+            return
+        checked_indices: List[int] = []
         old_ime: List[LayerImageEntry] = []
         merger: Optional[np.ndarray] = None
         parent_layers: List[int] = []
@@ -199,17 +198,14 @@ class ClusterEditor(PreviewWindow):
                 assert ime.layer_data.layer_index is not None
                 parent_layers.append(ime.layer_data.layer_index)
 
-            checked_entries.append(index)
+            checked_indices.append(index)
             old_ime.append(ime)
             merger = self._source_image_entries[index].array if merger is None else merger | self._source_image_entries[
                 index].array
             ime.setChecked(False)
             ime.close()
 
-        if len(checked_entries) < 2:
-            return
-
-        for i in sorted(checked_entries, reverse=True):
+        for i in sorted(checked_indices, reverse=True):
             self._source_image_entries.pop(i)
 
         self.__cluster_array = create_cluster([ime.array for ime in self._source_image_entries])
@@ -220,9 +216,10 @@ class ClusterEditor(PreviewWindow):
                                      is_merger=True, parent_layers=parent_layers)
         merged_ime.mouse_pressed.connect(self.image_entry_click_handler)
         merged_ime.state_changed.connect(self.change_merge_button_state)
-        self.__pending_add(checked_entries, merged_ime, old_ime)
+        self.__pending_add(checked_indices, merged_ime, old_ime)
         self.set_preview_image(qim, merged_ime)
         self.add_source_image_entry(merged_ime)
+        self.change_all_entries_check_state(False)
 
     @Slot()
     def apply_to_all(self) -> None:
@@ -262,6 +259,7 @@ class ClusterEditor(PreviewWindow):
             self.add_source_image_entry(ime)
             if i == 0:
                 self.set_preview_image(load_image(layer_data.image_path), ime)
+        self.change_all_entries_check_state(False)
 
     @Slot()
     def unmerge(self) -> None:
