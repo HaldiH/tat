@@ -17,3 +17,7 @@ This software is released under the [Apache License 2.0](https://gitlab.unige.ch
 ## Copyrights
 
 This software has been developped by Hugo Haldi with the collaboration of Tommaso Bagni and Diego Mauro for giving samples of tomography images and suggestions for application features and layout.
+
+## References
+
+Bagni, T., Bovone, G., Rack, A. et *al*. Machine learning applied to X-ray tomography as a new tool to analyze the voids in RRP Nb<sub>3</sub>Sn wires. *Sci Rep* **11**, 7767 (2021). [https://doi.org/10.1038/s41598-021-87475-6](https://doi.org/10.1038/s41598-021-87475-6).
