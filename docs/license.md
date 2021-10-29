@@ -12,7 +12,7 @@ All these projects are used by TAT:
 
 ## Software license
 
-This software is released under the [Apache License 2.0](https://gitlab.unige.ch/Hugo.Haldi/tat/-/raw/master/LICENSE).
+This software is released under the [Apache License 2.0](https://raw.githubusercontent.com/ShinoYasx/tat/master/LICENSE).
 
 ## Copyrights
 
