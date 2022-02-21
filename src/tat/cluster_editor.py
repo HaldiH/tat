@@ -9,12 +9,12 @@ from PySide6.QtWidgets import QLayout, QLabel, QWidget, QGridLayout
 from PySide6.QtGui import QImage, QMouseEvent, QCloseEvent, QResizeEvent, QMoveEvent, QPixmap
 from PySide6.QtCore import Slot, QSize, QPoint, Qt, Signal
 
-from .ui_editor_window import Ui_EditorWindow
-from .preview_window import PreviewWindow
-from .cluster_image_entry import ClusterImageEntry
-from .layer_image_entry import LayerImageEntry
-from .layer_data import LayerData
-from .utils import load_image, array2d_to_pixmap, fit_to_frame, create_cluster
+from tat.ui_editor_window import Ui_EditorWindow
+from tat.preview_window import PreviewWindow
+from tat.cluster_image_entry import ClusterImageEntry
+from tat.layer_image_entry import LayerImageEntry
+from tat.layer_data import LayerData
+from tat.utils import load_image, array2d_to_pixmap, fit_to_frame, create_cluster
 
 
 class CLusterPreviewWindow(QWidget):

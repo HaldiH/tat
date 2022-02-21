@@ -8,15 +8,15 @@ import cv2 as cv
 from PySide6.QtWidgets import QFileDialog, QLabel, QLayout
 from PySide6.QtCore import QObject, Slot, Signal, QThreadPool, QRunnable
 
-from .clustering import Tat
-from .checkable_image_entry import CheckableImageEntry
-from .preview_window import PreviewWindow
-from .cluster_image_entry import ClusterImageEntry
-from .cluster_editor import ClusterEditor
-from .layer_data import LayerData
-from .progress_window import ProgressWindow
-from .ui_main_window import Ui_MainWindow
-from .utils import load_image, apply_colormap, create_cluster, array3d_to_pixmap
+from tat.clustering import Tat
+from tat.checkable_image_entry import CheckableImageEntry
+from tat.preview_window import PreviewWindow
+from tat.cluster_image_entry import ClusterImageEntry
+from tat.cluster_editor import ClusterEditor
+from tat.layer_data import LayerData
+from tat.progress_window import ProgressWindow
+from tat.ui_main_window import Ui_MainWindow
+from tat.utils import load_image, apply_colormap, create_cluster, array3d_to_pixmap
 
 
 class ClusteringSignals(QObject):

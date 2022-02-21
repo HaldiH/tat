@@ -4,7 +4,7 @@ from PySide6.QtCore import Signal
 
 from typing import Optional
 
-from .ui_progress_bar import Ui_ProgressBar
+from tat.ui_progress_bar import Ui_ProgressBar
 
 
 class ProgressWindow(QDialog):

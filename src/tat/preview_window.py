@@ -5,9 +5,9 @@ from PySide6.QtCore import QSize, Slot
 from abc import abstractmethod
 from typing import Optional, List
 
-from .image_entry import ImageEntry
-from .checkable_image_entry import CheckableImageEntry
-from .utils import load_image, fit_to_frame
+from tat.image_entry import ImageEntry
+from tat.checkable_image_entry import CheckableImageEntry
+from tat.utils import load_image, fit_to_frame
 
 
 class PreviewWindow(QMainWindow):

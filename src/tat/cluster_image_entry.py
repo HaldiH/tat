@@ -4,8 +4,8 @@ from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QImage, QMouseEvent
 from PySide6.QtCore import Signal
 
-from .image_entry import ImageEntry
-from .layer_data import LayerData
+from tat.image_entry import ImageEntry
+from tat.layer_data import LayerData
 
 from typing import Final, List
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 from typing import Callable, Final, Any, Optional, List
-from .utils import fit_to_frame
+from tat.utils import fit_to_frame
 from textwrap import wrap
 
 from PySide6.QtWidgets import QWidget, QVBoxLayout, QLabel, QSizePolicy

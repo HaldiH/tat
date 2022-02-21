@@ -14,5 +14,5 @@ setup(
     version="{}.{}.{}".format(*get_version("tat").split(".")),
     description="Tomography Analysis Tool",
     options={"build_exe": build_exe_options},
-    executables=[Executable("main.py", base=base, target_name="tat")]
+    executables=[Executable("__main__.py", base=base, target_name="tat")]
 )

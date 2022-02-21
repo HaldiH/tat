@@ -1,14 +1,11 @@
-from PySide6.QtWidgets import QApplication
-from .main_window import MainWindow
 import sys
+import os
 
+# If we are not running as a package, add project root to path
+if not __package__:
+    path = os.path.dirname(os.path.dirname(__file__))
+    sys.path.insert(0, path)
 
-def main() -> int:
-    app = QApplication()
-    app.main_window = MainWindow()
-    app.main_window.show()
-    return app.exec()
-
-
-if __name__ == '__main__':
-    sys.exit(main())
+if __name__ == "__main__":
+    from tat.gui.main import main as _main
+    sys.exit(_main())

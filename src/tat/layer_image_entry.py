@@ -2,8 +2,8 @@ from typing import Optional, Final, List
 
 import numpy as np
 
-from .checkable_image_entry import CheckableImageEntry
-from .layer_data import LayerData
+from tat.checkable_image_entry import CheckableImageEntry
+from tat.layer_data import LayerData
 
 from PySide6.QtWidgets import QWidget
 from PySide6.QtGui import QImage
