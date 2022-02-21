@@ -25,10 +25,10 @@ If you are using windows, it may happends that `pip` is not in your path. So you
 
 ### Getting the sources
 
-As this project is open source, you can directly download the sources on the [Git repo](https://gitlab.unige.ch/Hugo.Haldi/tat). You can either download the sources as a zip on the website [gitlab.unige.ch/Hugo.Haldi/tat](https://gitlab.unige.ch/Hugo.Haldi/tat), or use [Git](https://git-scm.com) :
+As this project is open source, you can directly download the sources on the [Git repo](https://github.com/ShinoYasx/tat). You can either download the sources as a zip on the website [https://github.com/ShinoYasx/tat](https://github.com/ShinoYasx/tat), or use [Git](https://git-scm.com) :
 
 ```shell
-git clone https://gitlab.unige.ch/Hugo.Haldi/tat.git tat
+git clone https://github.com/ShinoYasx/tat tat
 cd tat/
 ```
 
@@ -64,8 +64,8 @@ If you are on windows, an executable file should be available in the start menu,
 
 #### Linux
 
-If you are on Linux, there will be no default desktop executable. You can however download [this file](https://gitlab.unige.ch/Hugo.Haldi/tat/-/blob/master/data/ch.unige.tat.desktop) and put it into `~/.local/share/applications`, or with a one-liner bash command :
+If you are on Linux, there will be no default desktop executable. You can however download [this file](https://github.com/ShinoYasx/tat/blob/master/data/ch.unige.tat.desktop) and put it into `~/.local/share/applications`, or with a one-liner bash command :
 
 ```shell
-curl --create-dirs -O --output-dir ~/.local/share/applications/ https://gitlab.unige.ch/Hugo.Haldi/tat/-/raw/master/data/ch.unige.tat.desktop
+curl --create-dirs -O --output-dir ~/.local/share/applications/ https://raw.githubusercontent.com/ShinoYasx/tat/master/data/ch.unige.tat.desktop
 ```
