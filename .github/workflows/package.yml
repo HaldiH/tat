@@ -1,8 +1,8 @@
 name: Package
 on:
   push:
-    # tags:
-    #   - "v*.*.*"
+    tags:
+      - "v*.*.*"
 
 jobs:
   build:
@@ -32,9 +32,10 @@ jobs:
           python -m pip install --upgrade pip
           pip install setuptools wheel build
           pip install -r requirements.txt
+      - name: Generate version file
+        run: echo ${GITHUB_REF/refs\/tags\/v/} > version.txt
       - name: Build package
-        run: |
-          python packager-setup.py bdist_${{ matrix.platform.bdist-target }}
+        run: python packager-setup.py bdist_${{ matrix.platform.bdist-target }}
       - name: Release
         uses: softprops/action-gh-release@v1
         with:
