@@ -33,7 +33,10 @@ jobs:
           pip install setuptools wheel build
           pip install -r requirements.txt
       - name: Generate version file
-        run: echo ${GITHUB_REF/refs\/tags\/v/} > version.txt
+        run: |
+          $version = "${GITHUB_REF/refs\/tags\/v/}"
+          $version | Out-File -Encoding ascii version.txt
+          Write-Host "Building installer for TAT version $version"
       - name: Build package
         run: python packager-setup.py bdist_${{ matrix.platform.bdist-target }}
       - name: Release
