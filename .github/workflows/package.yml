@@ -37,6 +37,8 @@ jobs:
         run: echo ${GITHUB_REF/refs\/tags\/v/} > version.txt
         shell: bash
       - name: Build package
+        run: python packager-setup.py bdist
+      - name: Build installer
         run: python packager-setup.py bdist_${{ matrix.platform.bdist-target }}
       - name: Release
         uses: softprops/action-gh-release@v1
