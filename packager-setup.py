@@ -1,16 +1,20 @@
 import sys
 from cx_Freeze import setup, Executable
-from pbr.packaging import get_version
+
+sys.path.insert(0, "src")
 
 build_exe_options = {
     "packages": [
         "PySide6",
         "cv2",
-        "skimage"
+        "skimage",
+        "tat"
     ],
     "excludes": [
         "tkinter"
-    ]}
+    ],
+    "path": sys.path
+}
 
 # base="Win32GUI" should be used only for Windows GUI app
 base = None
