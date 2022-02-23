@@ -1,5 +1,13 @@
 # Installation of TAT
 
+## Via installer (only Windows currently supported)
+
+There is only Windows installer currently supported. For Linux or macOS, get the [pip version](#via-pip) or [compile the sources](#via-sources). To get the installer, go to the [release page](https://github.com/ShinoYasx/tat/releases), and click on the file you want to download.
+
+The `.msi` file is an installer that will automatically put all the files in the selected directory and will create desktop and start menu shortcuts. The zip file is a _portable_ version containing the executable `tat.exe` and all the required dependencies (no installation required).
+
+This version is a standalone, meaning that you don't need any prerequisite (e.g. having a python distribution installed) to run the application.
+
 ## Via pip
 
 ### Requirements
@@ -15,7 +23,7 @@ pip install tat
 ```
 
 :::{note}
-If you are using windows, it may happends that `pip` is not in your path. So you will need to add `python -m pip` to install the package, e.g.
+If you are using Windows, it may happends that `pip` is not in your path. So you will need to add `python -m pip` to install the package, e.g.
     ```shell
     python -m pip install tat
     ```
@@ -60,7 +68,9 @@ tat
 
 #### Windows
 
-If you are on windows, an executable file should be available in the start menu, to find it simply type `tat` in the search bar. Click `tat.exe` to open the application.
+If you used the installer, a shortcut should be available on the Desktop and in the Start Menu named _Tomography Analysis Tool_. Just click on it to start the application.
+
+If you used pip or sources installation, an executable file should be available in the start menu, to find it simply type `tat` in the search bar. Click `tat.exe` to open the application.
 
 #### Linux
 

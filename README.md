@@ -15,7 +15,17 @@ A tool for 2D tomographic images clustering using the k-means method.
 
 ## Install
 
-This application is available on [PyPI](https://pypi.org/project/tat/). You can install it using the `pip` tool :
+### Standalone installer
+
+#### Windows
+
+There is only Windows installer currently supported. For Linux or macOS, get the [pip version](#pip). To get the installer, go to the [release page](https://github.com/ShinoYasx/tat/releases), and click on the file you want to download.
+
+The `.msi` file is an installer that will automatically put all the files in the selected directory and will create desktop and start menu shortcuts. The zip file is a _portable_ version containing the executable `tat.exe` and all the required dependencies (no installation required).
+
+### Pip
+
+This application is also available on [PyPI](https://pypi.org/project/tat/). You can install it using the `pip` tool :
 
 ```bash
 pip install tat
@@ -23,7 +33,9 @@ pip install tat
 
 ## Usage
 
-You can use the command line to run the application or launch it via the start menu (search for _tat_) if you are running on Windows.
+If you used the installer, a shortcut named _Tomography Analysis Tool_ will be available in the start menu and on the Desktop. Just click it to open the application.
+
+If you used the pip version, you can use the command line to run the application or launch it via the start menu (search for _tat_) if you are running on Windows.
 
 e.g.
 
