@@ -16,6 +16,12 @@ If you are a user, you can follow the [installation guide](user-guide/installati
 
 ### Quick start
 
+Check if an installer is available for your system on the [release page](https://github.com/ShinoYasx/tat/releases) and get the latest version.
+
+---
+
+If your system is not supported or you want to install the pip version, follow these steps.
+
 TAT needs Python >= 3.8 and 3.8.1 on Windows.
 
 TAT is available in PyPI, thus you can install it with `pip` :
@@ -46,7 +52,7 @@ Interface manual <user-guide/manual>
 ```
 
 ```{toctree}
-:caption: Developper Guide
+:caption: Developer Guide
 :hidden:
 References <dev-guide/references>
 ```
@@ -57,3 +63,9 @@ References <dev-guide/references>
 license
 Release Notes <changelog>
 ```
+
+## Cite us
+
+T. Bagni, H. Haldi, D. Mauro, C. Senatore. [Tomography analysis tool: an application for image analysis based on unsupervised machine learning](https://doi.org/10.1088/2633-1357/ac54bf) (2022) IOPSciNotes
+
+Bagni, T., Bovone, G., Rack, A. et *al*. [Machine learning applied to X-ray tomography as a new tool to analyze the voids in RRP Nb<sub>3</sub>Sn wires](https://doi.org/10.1038/s41598-021-87475-6). *Sci Rep* **11**, 7767 (2021).

@@ -3,6 +3,7 @@
 A tool for 2D tomographic images clustering using the k-means method.
 
 [![Python package](https://github.com/ShinoYasx/tat/actions/workflows/python-package.yml/badge.svg)](https://github.com/ShinoYasx/tat/actions/workflows/python-package.yml)
+[![Package](https://github.com/ShinoYasx/tat/actions/workflows/package.yml/badge.svg)](https://github.com/ShinoYasx/tat/actions/workflows/package.yml)
 [![Documentation Status](https://readthedocs.org/projects/tat/badge/?version=latest)](https://tat.readthedocs.io/en/latest/?badge=latest)
 
 ## Dependencies
