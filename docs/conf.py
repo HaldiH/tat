@@ -40,6 +40,8 @@ myst_enable_extensions = [
     'colon_fence'
 ]
 
+myst_heading_anchors = 4
+
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
 
@@ -75,6 +77,10 @@ html_sidebars = {
 # relative to this directory. They are copied after the builtin static files,
 # so a file named "default.css" will overwrite the builtin "default.css".
 html_static_path = ['_static']
+
+html_js_files = [
+    'js/github_releases.js'
+]
 
 
 def sha256_file(file):

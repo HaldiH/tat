@@ -14,6 +14,15 @@ Welcome to the documentation of the TAT GUI. TAT (for Tomography Analysis Tool) 
 
 If you are a user, you can follow the [installation guide](user-guide/installation.md) and see the [user manual](user-guide/manual.md).
 
+### Latest release
+
+<table id="downloadTable">
+    <tr>
+        <th>Asset</th>
+        <th>Download count</th>
+    </tr>
+</table>
+
 ### Quick start
 
 Check if an installer is available for your system on the [release page](https://github.com/ShinoYasx/tat/releases) and get the latest version.
